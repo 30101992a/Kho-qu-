@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sơ đồ luồng nghiệp vụ kho quỹ — Agribank</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.3/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --navy: #0b2a4a;
+    --navy-2: #143c66;
+    --blue: #1a5fa8;
+    --gold: #c4a35a;
+    --bg: #f4f7fb;
+    --card: #ffffff;
+    --text: #1c2430;
+    --muted: #5b6777;
+    --line: #d5deea;
+    --ok: #1f7a4d;
+    --warn: #9a5b12;
+    --danger: #9b1c2c;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "Be Vietnam Pro", Tahoma, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.55;
+  }
+  .topbar {
+    background: linear-gradient(90deg, var(--navy), var(--navy-2));
+    color: #fff;
+    padding: 18px 28px 16px;
+    border-bottom: 4px solid var(--gold);
+  }
+  .topbar h1 {
+    margin: 0 0 6px;
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+  }
+  .topbar p { margin: 0; max-width: 980px; color: #dce7f5; font-size: .95rem; }
+  .wrap {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 0;
+    align-items: start;
+  }
+  nav.toc {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow: auto;
+    background: #fff;
+    border-right: 1px solid var(--line);
+    padding: 16px 12px 32px;
+  }
+  nav.toc h2 {
+    margin: 4px 10px 10px;
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+  }
+  nav.toc a {
+    display: block;
+    padding: 7px 10px;
+    color: var(--navy);
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: .86rem;
+  }
+  nav.toc a:hover, nav.toc a:focus { background: #eaf2fb; }
+  nav.toc a.sub { padding-left: 22px; color: var(--muted); font-size: .82rem; }
+  main { padding: 20px 28px 80px; min-width: 0; }
+  .intro {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 5px solid var(--gold);
+    padding: 16px 18px;
+    margin-bottom: 22px;
+    border-radius: 8px;
+  }
+  .luong {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 22px 28px;
+    margin: 0 0 28px;
+    box-shadow: 0 1px 2px rgba(11,42,74,.04);
+  }
+  .luong h2 {
+    margin: 0 0 4px;
+    color: var(--navy);
+    font-size: 1.28rem;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--gold);
+  }
+  .meta { color: var(--muted); font-size: .9rem; margin: 0 0 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+  .chip {
+    background: #eef4fb;
+    color: var(--navy);
+    border: 1px solid #c9daf0;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: .8rem;
+  }
+  .box {
+    background: #f7fafc;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 0 0 16px;
+  }
+  .box h3 { margin: 0 0 6px; font-size: .95rem; color: var(--navy); }
+  .box ul { margin: 0; padding-left: 18px; }
+  .diagram {
+    overflow-x: auto;
+    background: #fbfdff;
+    border: 1px dashed #b9cbe0;
+    border-radius: 8px;
+    padding: 12px 8px 8px;
+    margin: 0 0 16px;
+  }
+  .diagram .caption {
+    font-size: .8rem;
+    color: var(--muted);
+    margin: 0 8px 8px;
+    font-weight: 600;
+  }
+  .mermaid { display: flex; justify-content: center; }
+  table.steps {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .9rem;
+  }
+  table.steps th, table.steps td {
+    border: 1px solid var(--line);
+    padding: 8px 10px;
+    vertical-align: top;
+    text-align: left;
+  }
+  table.steps th {
+    background: var(--navy);
+    color: #fff;
+    font-weight: 600;
+  }
+  table.steps tr:nth-child(even) td { background: #f7fafd; }
+  table.steps td:first-child { width: 52px; font-weight: 700; color: var(--blue); text-align: center; }
+  h3.nhanh {
+    margin: 28px 0 8px;
+    color: var(--navy-2);
+    font-size: 1.08rem;
+  }
+  .note {
+    font-size: .86rem;
+    color: var(--muted);
+    margin: 8px 0 0;
+  }
+  @media (max-width: 980px) {
+    .wrap { grid-template-columns: 1fr; }
+    nav.toc { position: sticky; top: 0; height: auto; max-height: 40vh; z-index: 20; }
+  }
+  @media print {
+    nav.toc { display: none; }
+    .wrap { display: block; }
+    .topbar { border-bottom-width: 2px; }
+    .luong { break-inside: avoid; box-shadow: none; }
+    .diagram { break-inside: avoid; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>Sơ đồ luồng nghiệp vụ kho quỹ</h1>
+  <p>Căn cứ Quy định Agribank về giao nhận, bảo quản, vận chuyển tiền mặt, tài sản quý, giấy tờ có giá, ấn chỉ quan trọng và tài sản khác (QĐ/Quy định số 4368/QĐ-NHNo-TCKT). Mỗi luồng tự đủ bước — không dẫn sang luồng khác.</p>
+</div>
+<div class="wrap">
+<nav class="toc" aria-label="Mục lục">
+  <h2>Mục lục</h2>
+  <a href="#luong-1">Luồng 1 — Nghỉ thủ kho, bàn giao</a>
+  <a href="#luong-2">Luồng 2 — Ủy quyền quản lý kho</a>
+  <a href="#luong-3">Luồng 3 — Kiểm kê định kỳ / đột xuất</a>
+  <a class="sub" href="#luong-3a">3A. Hội đồng kiểm kê</a>
+  <a class="sub" href="#luong-3b">3B. Nghỉ trưa</a>
+  <a class="sub" href="#luong-3c">3C. Cuối ngày</a>
+  <a class="sub" href="#luong-3d">3D. Ngày 01 hàng tháng</a>
+  <a class="sub" href="#luong-3e">3E. 01/01 và 01/07</a>
+  <a class="sub" href="#luong-3f">3F. Đột xuất</a>
+  <a href="#luong-4">Luồng 4 — Xuất kho quỹ ngày</a>
+  <a href="#luong-5">Luồng 5 — Thu/chi quầy</a>
+  <a href="#luong-6">Luồng 6 — Thu túi niêm phong</a>
+  <a href="#luong-7">Luồng 7 — Thu/chi tại địa chỉ KH</a>
+  <a href="#luong-8">Luồng 8 — Giao nhận trong ngành</a>
+  <a href="#luong-9">Luồng 9 — Vào/ra kho tiền</a>
+  <a href="#luong-10">Luồng 10 — Vận chuyển / điều chuyển</a>
+  <a href="#luong-11">Luồng 11 — Thừa / thiếu</a>
+  <a href="#luong-12">Luồng 12 — Sự cố chìa khóa</a>
+  <a href="#luong-13">Luồng 13 — Ngoài giờ / nội quy</a>
+  <a href="#luong-14">Luồng 14 — Báo cáo năm mẫu 19</a>
+  <a href="#luong-15">Luồng 15 — ATM</a>
+</nav>
+<main>
+
+<div class="intro">
+  <strong>Cách đọc:</strong> mỗi luồng có “Khi nào mở việc”, “Ai tham gia”, sơ đồ dọc (số trên ô = số bước), rồi bảng chú thích cùng số bước.
+  <strong>Vai trò viết tắt:</strong> TĐV = Trưởng đơn vị / Giám đốc CN hoặc GĐ PGD;
+  TPKT = Trưởng phòng/Tổ kế toán và ngân quỹ;
+  TK = Thủ kho tiền; TQ = Thủ quỹ / thủ quỹ chính / GDV quỹ;
+  KTGS = Cán bộ kiểm tra giám sát; HĐKK = Hội đồng kiểm kê; HĐKĐ = Hội đồng kiểm đếm; BV = Bảo vệ.
+  <span class="note">Sơ đồ vẽ bằng Mermaid (CDN jsDelivr). Cần mạng lần đầu để tải thư viện. In trang: Ctrl+P.</span>
+</div>
+
+<!-- ========== LUỒNG 1 ========== -->
+<section class="luong" id="luong-1">
+  <h2>Luồng 1 — Thủ kho / thủ quỹ nghỉ, cử người thay, bàn giao kho</h2>
+  <p class="meta">Điều 23 khoản 4, Điều 54, Điều 25, Điều 19–20, Điều 55</p>
+  <div class="chips">
+    <span class="chip">Khi nào: TK, TQ, TQ chính hoặc Tổ trưởng KT–NQ xin phép / công tác / họp / học</span>
+    <span class="chip">Đầu ra: QĐ cử thay + biên bản kiểm kê bàn giao + S 08/TTKQ hai chiều</span>
+  </div>
+  <div class="box">
+    <h3>Ai tham gia</h3>
+    <ul>
+      <li>Người nghỉ (TK / TQ / TQ chính / Tổ trưởng KT–NQ)</li>
+      <li>Người được đề xuất / cử thay</li>
+      <li>TPKT hoặc Giám đốc PGD (đề xuất, kiểm tra tiêu chuẩn Điều 19–20)</li>
+      <li>TĐV: tại chi nhánh là Giám đốc CN; tại PGD thì GĐ PGD đề xuất, Giám đốc chi nhánh quản lý ký quyết định cử người</li>
+      <li>Hội đồng kiểm kê: Chủ tịch = TĐV hoặc người được TĐV ủy quyền; thành viên = TPKT, KTGS, người giúp việc do TĐV chỉ định; TK/TQ là thành phần chứng kiến</li>
+      <li>Ba người giữ chìa cửa kho / két 3 khóa (TĐV, TPKT, TK/TQ) khi bàn giao chìa khóa mã số</li>
+    </ul>
+  </div>
+
+  <h3 class="nhanh" style="margin-top:0">Nhánh A — Chiều đi: nghỉ và bàn giao cho người thay</h3>
+  <div class="diagram">
+    <p class="caption">Sơ đồ A — từ đề nghị nghỉ đến ký biên bản chiều đi</p>
+    <pre class="mermaid">
+flowchart TB
+  A1["1. Người nghỉ nộp đề nghị<br/>lý do, từ ngày đến ngày"] --> A2["2. TPKT hoặc GĐ PGD<br/>kiểm tiêu chuẩn Đ 19-20<br/>đề xuất người thay"]
+  A2 --> A3{"3. Đủ tiêu chuẩn?"}
+  A3 -->|Không| A3b["3b. Chọn người khác<br/>quay lại bước 2"]
+  A3 -->|Có| A4["4. TĐV ký QĐ cử người thay<br/>PGD: GĐ PGD đề xuất<br/>GĐ CN quản lý cử"]
+  A4 --> A5["5. Ghi nhận: người thay<br/>không được ủy quyền lại"]
+  A5 --> A6["6. TĐV ký QĐ thành lập HĐKK"]
+  A6 --> A7["7. HĐKK có mặt đủ thành phần<br/>TK/TQ chứng kiến"]
+  A7 --> A8["8. Bên giao sắp xếp, xuất trình<br/>hiện vật, sổ, chứng từ<br/>không trực tiếp kiểm đếm"]
+  A8 --> A9["9. HĐKK kiểm kê hiện vật<br/>khớp sổ kho quỹ và IPCAS"]
+  A9 --> A10{"10. Khớp?"}
+  A10 -->|Lệch| A10b["10b. Lập biên bản thừa/thiếu<br/>TĐV, TPKT, KTGS xem xét<br/>truy trách nhiệm — chưa đóng bàn giao"]
+  A10 -->|Khớp| A11["11. Bàn giao tiền, tài sản, sổ,<br/>chìa, phương tiện — ký S 08/TTKQ"]
+  A11 --> A12{"12. Khóa mã số?"}
+  A12 -->|Có| A12b["12b. Đủ 3 người giữ chìa<br/>người giao xóa mã<br/>người nhận cài mã của mình"]
+  A12 -->|Không| A13
+  A12b --> A13["13. Người nhận tự kiểm, tự đếm<br/>không nhờ người khác nhận thay"]
+  A13 --> A14["14. Ký biên bản kiểm kê bàn giao<br/>chiều đi hoàn thành"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Thủ kho / Thủ quỹ / người nghỉ</td><td>Lập đề nghị nghỉ: họ tên, chức danh, lý do (phép, công tác, họp, học), thời gian từ ngày đến ngày, có thể nêu người nhận dự kiến.</td><td>Đơn / phiếu đề nghị nghỉ</td><td>Nộp trước giờ nghỉ; nếu nghỉ liền thì nhắc sau 2 giờ chưa duyệt</td></tr>
+      <tr><td>2</td><td>TPKT; nếu tại PGD thì Giám đốc PGD</td><td>Kiểm người được đề xuất theo tiêu chuẩn chức danh kho quỹ (Điều 19) và các trường hợp không được bố trí quản lý kho quỹ (Điều 20). Nếu đạt thì đề xuất chính thức gửi TĐV.</td><td>Tờ trình / đề xuất cử thay thế</td><td>Trước khi người nghỉ rời vị trí</td></tr>
+      <tr><td>3</td><td>TPKT / GĐ PGD</td><td>Nếu không đủ tiêu chuẩn: chọn người khác, làm lại bước 2. Nếu đủ: chuyển bước 4.</td><td>—</td><td>—</td></tr>
+      <tr><td>4</td><td>TĐV. Tại PGD: GĐ PGD đề xuất, Giám đốc chi nhánh quản lý ký quyết định cử người</td><td>Ban hành quyết định cử người thay thế, ghi rõ thời hạn và phạm vi trách nhiệm Thủ kho / Thủ quỹ (Điều 16, 21).</td><td>Quyết định cử người thay thế</td><td>Phải có trước giờ bàn giao</td></tr>
+      <tr><td>5</td><td>Người thay thế, TĐV</td><td>Xác nhận người thay không được ủy quyền lại cho người khác trong suốt thời gian được giao.</td><td>Ghi trong quyết định cử thay</td><td>—</td></tr>
+      <tr><td>6</td><td>TĐV</td><td>Ký quyết định thành lập Hội đồng kiểm kê cho lần bàn giao này (kể cả nghỉ ngắn nếu TĐV quyết định bàn giao toàn bộ; đổi thủ kho/thủ quỹ mặc định bàn giao toàn bộ. Nghỉ ngắn TĐV có thể ghi văn bản bàn giao từng phần).</td><td>QĐ thành lập HĐKK</td><td>Nhắc nếu đã có QĐ cử thay mà chưa có HĐKK</td></tr>
+      <tr><td>7</td><td>Chủ tịch HĐKK, TPKT, KTGS, người giúp việc, TK/TQ chứng kiến</td><td>Tập trung đủ thành phần tại nơi bảo quản tiền, tài sản.</td><td>QĐ HĐKK, danh sách có mặt</td><td>—</td></tr>
+      <tr><td>8</td><td>Bên giao (người nghỉ)</td><td>Đóng gói, niêm phong, sắp xếp gọn; xuất trình đủ hiện vật, chứng từ, sổ sách. Có mặt tại chỗ bảo quản, chứng kiến, không trực tiếp tham gia kiểm đếm. Được xem lại hiện vật, sổ, nội dung biên bản trước khi ký với vai trò chứng kiến.</td><td>Sổ kho quỹ, chứng từ liên quan</td><td>—</td></tr>
+      <tr><td>9</td><td>HĐKK</td><td>Kiểm kê toàn bộ tiền mặt, tài sản thuộc phạm vi giao quản lý; đối chiếu số thực tế với sổ kho quỹ và sổ kế toán trên IPCAS.</td><td>Biên bản kiểm kê (dự thảo)</td><td>Theo giờ TĐV chốt trong ngày bàn giao</td></tr>
+      <tr><td>10</td><td>HĐKK, TĐV, TPKT, KTGS</td><td>Nếu khớp: sang bước 11. Nếu lệch: lập biên bản thừa/thiếu, TĐV–TPKT–KTGS trực tiếp xem xét, ghi sổ, truy trách nhiệm người được giao bảo quản; chưa đóng bàn giao cho đến khi có hướng xử lý trên biên bản.</td><td>Biên bản thừa/thiếu</td><td>Xử lý ngay trong buổi kiểm kê</td></tr>
+      <tr><td>11</td><td>Bên giao và bên nhận, HĐKK</td><td>Bàn giao toàn bộ các loại tiền mặt và tài sản; toàn bộ sổ sách, tài liệu, chứng từ, số liệu; giấy tờ công tác quản lý trong kho; chìa khóa cửa kho, gian đếm, gian kho, chìa két, tủ sắt; phương tiện chuyên dùng kho quỹ; các việc liên quan. Ký Sổ theo dõi bàn giao chìa khóa sử dụng hàng ngày.</td><td>Biên bản bàn giao; S 08/TTKQ</td><td>—</td></tr>
+      <tr><td>12</td><td>Ba thành viên giữ chìa</td><td>Nếu khóa mã số: cả ba người giữ chìa phải có mặt, mở cửa kho. Người giao xóa mã số, giao chìa định vị. Người nhận cài mã của mình. Cấm người nhận dùng mã cũ hoặc mã của người giao. Nếu không phải khóa mã: bỏ qua 12b, sang bước 13.</td><td>S 08/TTKQ</td><td>Đủ 3 người mới được đổi mã</td></tr>
+      <tr><td>13</td><td>Người nhận bàn giao</td><td>Tự xem xét, kiểm tra, kiểm kê, kiểm đếm. Không được ủy quyền cho người khác nhận thay.</td><td>Xác nhận trên biên bản</td><td>—</td></tr>
+      <tr><td>14</td><td>Mọi thành viên HĐKK</td><td>Thông qua biên bản công khai, ký xác nhận số liệu, chứng từ đính kèm và sổ kho quỹ. Chiều đi hoàn thành. Người thay bắt đầu chịu trách nhiệm tài sản.</td><td>Biên bản kiểm kê bàn giao đã ký</td><td>Nhắc quá hạn giờ chốt nếu chưa ký</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="nhanh">Nhánh B — Chiều về: hết hạn nghỉ, bàn giao ngược cho người chính</h3>
+  <p class="note">Viết đủ bước, không rút gọn. Mở việc vào ngày hết thời hạn nghỉ ghi trên quyết định cử thay (nhắc T-1 và 08:00 ngày hết hạn).</p>
+  <div class="diagram">
+    <p class="caption">Sơ đồ B — bàn giao ngược người thay → người chính</p>
+    <pre class="mermaid">
+flowchart TB
+  B1["1. Đến ngày hết hạn nghỉ<br/>mở việc bàn giao ngược"] --> B2["2. TĐV ký QĐ thành lập HĐKK<br/>cho lần bàn giao ngược"]
+  B2 --> B3["3. HĐKK có mặt đủ thành phần<br/>TK/TQ chứng kiến"]
+  B3 --> B4["4. Người đang giữ kho sắp xếp<br/>xuất trình hiện vật, sổ<br/>không trực tiếp kiểm đếm"]
+  B4 --> B5["5. HĐKK kiểm kê hiện vật<br/>khớp sổ kho quỹ và IPCAS"]
+  B5 --> B6{"6. Khớp?"}
+  B6 -->|Lệch| B6b["6b. Biên bản thừa/thiếu<br/>TĐV, TPKT, KTGS xử lý<br/>chưa đóng"]
+  B6 -->|Khớp| B7["7. Bàn giao tiền, tài sản, sổ,<br/>chìa — ký S 08/TTKQ"]
+  B7 --> B8{"8. Khóa mã số?"}
+  B8 -->|Có| B8b["8b. Đủ 3 người<br/>người giao xóa mã<br/>người nhận cài mã của mình"]
+  B8 -->|Không| B9
+  B8b --> B9["9. Người chính tự kiểm<br/>không nhờ người nhận thay"]
+  B9 --> B10["10. Ký biên bản chiều về<br/>đóng việc nghỉ"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Hệ thống / TPKT / TĐV</td><td>Khi hết thời hạn trên quyết định cử thay, mở việc bàn giao ngược từ người thay sang người chính.</td><td>QĐ cử thay (còn hiệu lực đến hết ngày)</td><td>Nhắc T-1; 08:00 ngày hết hạn nếu chưa mở việc</td></tr>
+      <tr><td>2</td><td>TĐV</td><td>Ký quyết định thành lập Hội đồng kiểm kê lần bàn giao ngược.</td><td>QĐ thành lập HĐKK</td><td>—</td></tr>
+      <tr><td>3</td><td>Chủ tịch HĐKK, TPKT, KTGS, giúp việc, TK/TQ chứng kiến</td><td>Có mặt đủ thành phần tại kho / nơi bảo quản.</td><td>QĐ HĐKK</td><td>—</td></tr>
+      <tr><td>4</td><td>Người thay (đang giữ kho)</td><td>Sắp xếp, niêm phong, xuất trình hiện vật, sổ, chứng từ; không trực tiếp kiểm đếm; chứng kiến.</td><td>Sổ kho quỹ</td><td>—</td></tr>
+      <tr><td>5</td><td>HĐKK</td><td>Kiểm kê toàn bộ tiền, tài sản; khớp sổ kho quỹ và IPCAS.</td><td>Biên bản kiểm kê</td><td>—</td></tr>
+      <tr><td>6</td><td>HĐKK, TĐV, TPKT, KTGS</td><td>Khớp thì sang bước 7. Lệch thì lập biên bản thừa/thiếu, xem xét, truy trách nhiệm; chưa đóng.</td><td>Biên bản thừa/thiếu nếu có</td><td>Xử lý trong buổi</td></tr>
+      <tr><td>7</td><td>Người thay và người chính</td><td>Bàn giao tiền, tài sản, sổ, chìa, phương tiện. Ký S 08/TTKQ.</td><td>Biên bản bàn giao, S 08/TTKQ</td><td>—</td></tr>
+      <tr><td>8</td><td>Ba người giữ chìa</td><td>Nếu khóa mã: đủ 3 người; người thay xóa mã, giao chìa định vị; người chính cài mã của mình. Cấm dùng lại mã người giao.</td><td>S 08/TTKQ</td><td>—</td></tr>
+      <tr><td>9</td><td>Người chính (nhận lại)</td><td>Tự kiểm tra, kiểm kê, kiểm đếm. Không nhờ người khác nhận thay.</td><td>Xác nhận biên bản</td><td>—</td></tr>
+      <tr><td>10</td><td>HĐKK</td><td>Ký biên bản công khai. Đóng hồ sơ nghỉ. Người chính trở lại trách nhiệm Thủ kho / Thủ quỹ.</td><td>Biên bản đã ký</td><td>—</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== LUỒNG 2 ========== -->
+<section class="luong" id="luong-2">
+  <h2>Luồng 2 — Ủy quyền quản lý kho của TĐV / TPKT</h2>
+  <p class="meta">Điều 23 khoản 1, 2, 3, 5, 6, 7; Điều 54 khoản 2; Điều 25; Điều 55</p>
+  <div class="chips">
+    <span class="chip">Khi nào: TĐV hoặc TPKT đi vắng, cần Phó giữ chìa / quản lý kho có thời hạn</span>
+    <span class="chip">Cắt: hết hạn ủy quyền hoặc ngày 31/12 năm ủy quyền</span>
+  </div>
+  <div class="box">
+    <h3>Ai tham gia</h3>
+    <ul>
+      <li>Người ủy quyền: TĐV hoặc TPKT</li>
+      <li>Người được ủy quyền: một Phó TĐV hoặc một Phó TPKT (một quyết định chỉ một Phó)</li>
+      <li>Tại PGD: ủy quyền của GĐ PGD cho Phó GĐ PGD phải được Giám đốc chi nhánh quản lý phê duyệt</li>
+      <li>Ủy quyền của TPKT phải được TĐV chấp thuận</li>
+      <li>HĐKK khi hết hạn: Chủ tịch TĐV/người ủy quyền, TPKT, KTGS, giúp việc, TK/TQ chứng kiến</li>
+      <li>Ba người giữ chìa khi bàn giao chìa khóa mã</li>
+    </ul>
+  </div>
+
+  <h3 class="nhanh" style="margin-top:0">Nhánh A — Lập và thực hiện ủy quyền</h3>
+  <div class="diagram">
+    <p class="caption">Sơ đồ A — ban hành ủy quyền và bàn giao chìa</p>
+    <pre class="mermaid">
+flowchart TB
+  C1["1. Người ủy quyền lập văn bản<br/>nội dung, một Phó, từ ngày đến ngày<br/>1 hoặc 3 hoặc 6 tháng<br/>không quá 31/12"] --> C2{"2. Thời hạn chồng<br/>ủy quyền khác?"}
+  C2 -->|Có| C2b["2b. Sửa ngày cho liền nhau<br/>không chồng"]
+  C2 -->|Không| C3{"3. Người ủy quyền<br/>là TPKT?"}
+  C3 -->|Có| C3b["3b. TĐV chấp thuận văn bản"]
+  C3 -->|Không| C4
+  C3b --> C4{"4. GĐ PGD ủy quyền<br/>cho Phó GĐ PGD?"}
+  C4 -->|Có| C4b["4b. Giám đốc CN quản lý phê duyệt"]
+  C4 -->|Không| C5
+  C4b --> C5["5. Ban hành QĐ/văn bản ủy quyền<br/>một Phó trên một QĐ"]
+  C5 --> C6["6. Xác nhận: người được ủy quyền<br/>không ủy quyền lại"]
+  C6 --> C7{"7. Có đổi người giữ chìa?"}
+  C7 -->|Không| C12["12. Phó thực hiện nhiệm vụ kho<br/>trong thời hạn"]
+  C7 -->|Có| C8["8. Hai bên ký S 08/TTKQ<br/>bàn giao chìa hàng ngày"]
+  C8 --> C9{"9. Khóa mã số?"}
+  C9 -->|Có| C9b["9b. Đủ 3 người giữ chìa có mặt<br/>mở cửa kho<br/>người giao xóa mã<br/>người nhận cài mã mình"]
+  C9 -->|Không| C12
+  C9b --> C12
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>TĐV hoặc TPKT</td><td>Lập văn bản ủy quyền: phạm vi nhiệm vụ quản lý tiền mặt, tài sản, kho tiền; tên một Phó được chọn; thời hạn 01 hoặc 03 hoặc 06 tháng, ghi từ ngày đến ngày, không được qua ngày 31 tháng 12 của năm ủy quyền.</td><td>Dự thảo QĐ / văn bản ủy quyền</td><td>—</td></tr>
+      <tr><td>2</td><td>Người ủy quyền</td><td>Kiểm không chồng ngày với ủy quyền khác. Có thể ủy quyền lần lượt cho từng Phó ở các khoảng thời gian khác nhau, thời gian liền nhau, không chồng chéo. Nếu chồng: sửa ngày.</td><td>Sổ / danh mục ủy quyền</td><td>—</td></tr>
+      <tr><td>3</td><td>TĐV</td><td>Nếu người ủy quyền là TPKT: văn bản phải được TĐV chấp thuận rồi mới ban hành.</td><td>Chấp thuận của TĐV</td><td>—</td></tr>
+      <tr><td>4</td><td>Giám đốc chi nhánh quản lý</td><td>Nếu GĐ PGD ủy quyền cho Phó GĐ PGD: phải được GĐ CN quản lý phê duyệt.</td><td>Phê duyệt của GĐ CN</td><td>—</td></tr>
+      <tr><td>5</td><td>Người ủy quyền</td><td>Ban hành quyết định/văn bản. Chỉ ủy quyền cho một Phó trong một quyết định. Nêu rõ nội dung trong phạm vi trách nhiệm của mình (Điều 14, 15, 21) và thời hạn.</td><td>QĐ/văn bản ủy quyền</td><td>—</td></tr>
+      <tr><td>6</td><td>Người được ủy quyền</td><td>Xác nhận không được ủy quyền lại. Có trách nhiệm báo ngay cho người ủy quyền khi phát sinh việc hoặc hành vi vi phạm để xử lý kịp thời. Chịu trách nhiệm trước người ủy quyền về nội dung được ủy quyền.</td><td>Ghi trong QĐ</td><td>—</td></tr>
+      <tr><td>7</td><td>Phó đang giữ chìa và Phó được ủy quyền</td><td>Nếu việc ủy quyền làm đổi người giữ chìa: sang bước 8. Nếu không đổi chìa: sang bước 12.</td><td>—</td><td>—</td></tr>
+      <tr><td>8</td><td>Người giao chìa và người nhận chìa</td><td>Bàn giao chìa khóa cửa kho (và két ATM / két 3 khóa nếu cùng đổi). Ký Sổ theo dõi bàn giao chìa khóa sử dụng hàng ngày S 08/TTKQ.</td><td>S 08/TTKQ</td><td>—</td></tr>
+      <tr><td>9</td><td>Ba thành viên giữ chìa cửa kho</td><td>Nếu khóa mã số: cả ba phải có mặt, mở cửa kho. Người giao xóa mã, giao chìa định vị. Người nhận cài mã của mình. Cấm dùng mã xuất xưởng hoặc mã người giao.</td><td>S 08/TTKQ</td><td>—</td></tr>
+      <tr><td>12</td><td>Phó được ủy quyền</td><td>Thực hiện nhiệm vụ quản lý tiền, tài sản, kho trong thời hạn. Nếu Phó này lại nghỉ phép/công tác/họp/học: người ủy quyền lập văn bản ủy quyền cho Phó khác, cắt việc cũ, bàn giao chìa theo đúng bước 8–9 với Phó mới.</td><td>QĐ ủy quyền đang hiệu lực</td><td>Nhắc T-7 và T-1 trước hết hạn; 20/12 nếu còn hiệu lực gần 31/12</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Trường hợp TĐV và các Phó được ủy quyền đều đi vắng, hoặc đơn vị chưa bố trí đủ lãnh đạo: làm văn bản báo cáo, xin ý kiến GĐ chi nhánh quản lý / Tổng Giám đốc để bố trí người thay thế.</p>
+
+  <h3 class="nhanh">Nhánh B — Hết hạn ủy quyền hoặc đến 31/12: kiểm kê, bàn giao lại toàn bộ</h3>
+  <div class="diagram">
+    <p class="caption">Sơ đồ B — hết hạn / 31/12</p>
+    <pre class="mermaid">
+flowchart TB
+  D0["0. Hết hạn trên QĐ<br/>hoặc job cắt ngày 31/12"] --> D1["1. TĐV ký QĐ thành lập HĐKK"]
+  D1 --> D2["2. HĐKK có mặt:<br/>Chủ tịch TĐV hoặc người được ủy quyền,<br/>TPKT, KTGS, giúp việc,<br/>TK/TQ chứng kiến"]
+  D2 --> D3["3. Phó đang giữ kho sắp xếp<br/>xuất trình hiện vật, sổ<br/>không trực tiếp kiểm đếm"]
+  D3 --> D4["4. HĐKK kiểm kê toàn bộ tiền,<br/>tài sản — khớp sổ kho quỹ và IPCAS"]
+  D4 --> D5{"5. Khớp?"}
+  D5 -->|Lệch| D5b["5b. Biên bản thừa/thiếu<br/>TĐV, TPKT, KTGS xem xét<br/>truy trách nhiệm"]
+  D5 -->|Khớp| D6["6. Bàn giao lại toàn bộ<br/>tiền, tài sản, sổ, chìa, kho<br/>cho người ủy quyền — S 08/TTKQ"]
+  D6 --> D7{"7. Khóa mã số?"}
+  D7 -->|Có| D7b["7b. Đủ 3 người<br/>Phó xóa mã<br/>người ủy quyền cài mã mình"]
+  D7 -->|Không| D8
+  D7b --> D8["8. Người ủy quyền tự kiểm<br/>không nhờ người nhận thay"]
+  D8 --> D9["9. Phó báo cáo công việc<br/>đã làm về quản lý tiền, tài sản, kho"]
+  D9 --> D10["10. Ký biên bản, đóng ủy quyền"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>Hệ thống / TĐV</td><td>Khi hết thời hạn ủy quyền, hoặc đến hết ngày 31/12 năm ủy quyền: cắt hiệu lực, mở việc kiểm kê bàn giao lại toàn bộ tiền mặt, tài sản, kho tiền cho người ủy quyền.</td><td>QĐ ủy quyền</td><td>Nhắc T-7, T-1; 31/12 cắt toàn bộ ủy quyền còn hiệu lực</td></tr>
+      <tr><td>1</td><td>TĐV</td><td>Ký quyết định thành lập Hội đồng kiểm kê.</td><td>QĐ HĐKK</td><td>—</td></tr>
+      <tr><td>2</td><td>HĐKK</td><td>Có mặt: Chủ tịch là TĐV hoặc người được TĐV ủy quyền; TPKT hoặc người được TPKT ủy quyền / Tổ trưởng KT–NQ; KTGS; người giúp việc do TĐV chỉ định; Thủ kho / Thủ quỹ chính / Thủ quỹ là thành phần chứng kiến.</td><td>QĐ HĐKK</td><td>—</td></tr>
+      <tr><td>3</td><td>Phó đang quản lý kho</td><td>Đóng gói, niêm phong, sắp xếp; xuất trình hiện vật, chứng từ, sổ; có mặt chứng kiến; không trực tiếp kiểm đếm.</td><td>Sổ kho quỹ</td><td>—</td></tr>
+      <tr><td>4</td><td>HĐKK</td><td>Kiểm kê toàn bộ các loại tiền mặt, tài sản; đối chiếu thực tế với sổ kho quỹ và IPCAS.</td><td>Biên bản kiểm kê</td><td>—</td></tr>
+      <tr><td>5</td><td>TĐV, TPKT, KTGS, HĐKK</td><td>Khớp: sang bước 6. Lệch: lập biên bản thừa/thiếu, xem xét, ghi sổ, truy trách nhiệm; chưa đóng ủy quyền.</td><td>Biên bản thừa/thiếu nếu có</td><td>Trong buổi kiểm kê</td></tr>
+      <tr><td>6</td><td>Phó và người ủy quyền</td><td>Bàn giao lại toàn bộ tiền mặt, tài sản, sổ sách, chứng từ, chìa khóa cửa kho / gian đếm / két / tủ, phương tiện kho quỹ. Ký S 08/TTKQ nếu có bàn giao chìa.</td><td>Biên bản bàn giao, S 08/TTKQ</td><td>—</td></tr>
+      <tr><td>7</td><td>Ba người giữ chìa</td><td>Nếu khóa mã: đủ 3 người có mặt; Phó xóa mã, giao chìa định vị; người ủy quyền cài mã của mình. Cấm dùng mã người giao.</td><td>S 08/TTKQ</td><td>—</td></tr>
+      <tr><td>8</td><td>Người ủy quyền (nhận lại)</td><td>Tự kiểm tra, kiểm kê, kiểm đếm. Không nhờ người khác nhận thay.</td><td>Xác nhận biên bản</td><td>—</td></tr>
+      <tr><td>9</td><td>Phó hết hạn ủy quyền</td><td>Báo cáo công việc đã làm về quản lý tiền mặt, tài sản, kho tiền cho người ủy quyền.</td><td>Báo cáo công việc</td><td>—</td></tr>
+      <tr><td>10</td><td>HĐKK</td><td>Ký biên bản công khai. Đóng hồ sơ ủy quyền.</td><td>Biên bản đã ký</td><td>—</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== LUỒNG 3 ========== -->
+<section class="luong" id="luong-3">
+  <h2>Luồng 3 — Kiểm kê định kỳ và đột xuất</h2>
+  <p class="meta">Điều 12 khoản 2–3, Điều 52, 53, 54, 55 — luồng riêng, từng nhánh viết đủ bước</p>
+  <div class="chips">
+    <span class="chip">Khi nào: hết buổi sáng; hết ngày GD; 0h ngày 01 hàng tháng; 0h 01/01 và 01/07; hoặc đột xuất</span>
+  </div>
+  <div class="box">
+    <h3>Ai tham gia (tùy nhánh, nêu lại trong từng nhánh)</h3>
+    <ul>
+      <li>Hội đồng kiểm kê khi kiểm kê định kỳ tháng / 01/01 / 01/07 / bàn giao / đột xuất theo QĐ TĐV</li>
+      <li>Cuối ngày: thành viên Ban quản lý kho tiền / thành viên giữ chìa két 3 khóa; Giám đốc có thể bố trí thêm người giúp việc</li>
+      <li>Nghỉ trưa: TQ/GDV, Thủ kho hoặc Thủ quỹ chính, lãnh đạo phòng/tổ KT–NQ chứng kiến, bảo vệ nếu két 3 khóa</li>
+    </ul>
+  </div>
+
+  <h3 class="nhanh" id="luong-3a">3A. Thành lập Hội đồng kiểm kê và tiến hành kiểm kê (dùng cho tháng, 6 tháng, bàn giao, đột xuất khi TĐV ra QĐ)</h3>
+  <div class="diagram">
+    <p class="caption">Sơ đồ 3A</p>
+    <pre class="mermaid">
+flowchart TB
+  E1["1. Đủ điều kiện kiểm kê<br/>theo kỳ hoặc lệnh TĐV"] --> E2["2. TĐV ký QĐ thành lập HĐKK"]
+  E2 --> E3["3. HĐKK có mặt đủ thành phần"]
+  E3 --> E4["4. Bên đang bảo quản xuất trình<br/>hiện vật, sổ — không trực tiếp đếm"]
+  E4 --> E5["5. HĐKK kiểm kê, đối chiếu<br/>thực tế, sổ kho quỹ, IPCAS"]
+  E5 --> E6{"6. Khớp?"}
+  E6 -->|Lệch| E6b["6b. Biên bản thừa/thiếu<br/>TĐV, TPKT, KTGS xem xét"]
+  E6 -->|Khớp| E7["7. Thông qua biên bản công khai<br/>mọi thành viên ký"]
+  E6b --> E7
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>TĐV / TPKT</td><td>Xác định kỳ kiểm kê: định kỳ tháng, 01/01, 01/07, đột xuất, hoặc bàn giao tiền tài sản trong kho.</td><td>—</td><td>Theo lịch từng nhánh dưới</td></tr>
+      <tr><td>2</td><td>TĐV</td><td>Ký quyết định thành lập HĐKK tại đơn vị và PGD phụ thuộc khi kiểm kê định kỳ theo Điều 52 khoản 1, 2, 3, 6, 7 và khi bàn giao tiền, tài sản trong kho tiền.</td><td>QĐ thành lập HĐKK</td><td>—</td></tr>
+      <tr><td>3</td><td>HĐKK</td><td>Có mặt: (i) TĐV hoặc người được ủy quyền — Chủ tịch; (ii) TPKT hoặc người được ủy quyền / Tổ trưởng KT–NQ — thành viên; (iii) KTGS — thành viên; (iv) một số cán bộ giúp việc do TĐV quyết định; (v) Thủ kho / Thủ quỹ chính / Thủ quỹ — thành phần chứng kiến.</td><td>QĐ HĐKK</td><td>—</td></tr>
+      <tr><td>4</td><td>Người đang bảo quản</td><td>Đóng gói, niêm phong, sắp xếp; xuất trình hiện vật, chứng từ, sổ; có mặt chứng kiến; không trực tiếp tham gia kiểm đếm; được xem xét lại toàn bộ trước khi ký với vai trò chứng kiến.</td><td>Sổ kho quỹ, chứng từ</td><td>—</td></tr>
+      <tr><td>5</td><td>HĐKK</td><td>Kiểm kê theo nội dung, phương pháp Điều 53: đối chiếu hiện vật với sổ kho quỹ và sổ kế toán IPCAS.</td><td>Biên bản kiểm kê</td><td>—</td></tr>
+      <tr><td>6</td><td>TĐV, TPKT, KTGS</td><td>Nếu lệch: lập biên bản thừa/thiếu, xem xét, ghi sổ, truy trách nhiệm người được giao bảo quản.</td><td>Biên bản thừa/thiếu</td><td>Ngay trong buổi</td></tr>
+      <tr><td>7</td><td>Thành viên trực tiếp tham gia</td><td>Biên bản thông qua công khai, ký xác nhận số liệu, chứng từ đính kèm, sổ kho quỹ.</td><td>Biên bản đã ký</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="nhanh" id="luong-3b">3B. Cuối buổi sáng / nghỉ trưa</h3>
+  <div class="diagram">
+    <p class="caption">Sơ đồ 3B — Điều 12 khoản 2</p>
+    <pre class="mermaid">
+flowchart TB
+  F1["1. Hết giờ giao dịch buổi sáng"] --> F2["2. TQ / GDV kiểm đếm toàn bộ<br/>tiền, tài sản quý, ACQT thực tế<br/>khớp chứng từ, sổ, IPCAS"]
+  F2 --> F3["3. Cho vào thùng / hòm / túi<br/>niêm phong"]
+  F3 --> F4["4. Bàn giao Thủ kho hoặc<br/>Thủ quỹ chính / Thủ quỹ<br/>lãnh đạo phòng/tổ KT-NQ chứng kiến"]
+  F4 --> F5["5. Ghi S 05/TTKQ"]
+  F5 --> F6{"6. Đơn vị có kho tiền?"}
+  F6 -->|Có| F7{"7. Có gian đếm đạt an toàn<br/>cửa kết cấu như cửa kho<br/>và 2 ô khóa số?"}
+  F7 -->|Không hoặc không cho phép| F8["8. Toàn bộ vào kho tiền"]
+  F7 -->|TĐV cho phép bằng văn bản| F9["9. Giữ tại gian đếm:<br/>TK giữ 1 khóa chịu tài sản<br/>lãnh đạo KT giữ 1 khóa giám sát<br/>để trong két/tủ/hòm/xe lưới có khóa"]
+  F6 -->|Không| F10{"10. VP Trụ sở / đại diện<br/>/ đơn vị sự nghiệp?"}
+  F10 -->|Có| F11["11. Toàn bộ vào két sắt<br/>phòng nghiệp vụ"]
+  F10 -->|CN hoặc PGD| F12["12. Toàn bộ vào két 3 khóa<br/>niêm phong, bố trí bảo vệ"]
+  F8 --> F13["13. Chiều: kiểm niêm phong S 05<br/>rồi mới mở giao dịch"]
+  F9 --> F13
+  F11 --> F13
+  F12 --> F13
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>TQ / GDV</td><td>Kết thúc giao dịch buổi sáng, dừng thu chi quầy.</td><td>—</td><td>Nhắc khoảng 11:25–11:35 nếu chưa nộp</td></tr>
+      <tr><td>2</td><td>TQ / GDV</td><td>Kiểm đếm toàn bộ tiền mặt, tài sản quý, ACQT tồn thực tế, khớp chứng từ và sổ trên IPCAS.</td><td>Chứng từ, sổ quỹ, IPCAS</td><td>—</td></tr>
+      <tr><td>3</td><td>TQ / GDV</td><td>Cho vào thùng hoặc hòm hoặc túi và niêm phong.</td><td>Giấy niêm phong</td><td>—</td></tr>
+      <tr><td>4</td><td>TQ/GDV giao; TK hoặc TQ chính/TQ nhận; lãnh đạo phòng/tổ KT–NQ hoặc PGD chứng kiến</td><td>Bàn giao thùng/hòm/túi niêm phong. Quá trình kiểm đếm, niêm phong, bàn giao phải có chứng kiến lãnh đạo.</td><td>—</td><td>—</td></tr>
+      <tr><td>5</td><td>Bên giao và bên nhận</td><td>Ghi Sổ theo dõi gửi thùng, hòm, túi niêm phong S 05/TTKQ.</td><td>S 05/TTKQ</td><td>Nhắc nếu 11:35 chưa có S 05</td></tr>
+      <tr><td>6–12</td><td>Giám đốc CN/PGD chịu trách nhiệm tổ chức bảo quản buổi trưa</td><td>Có kho: toàn bộ vào kho. Nếu có gian đếm an toàn (cửa kết cấu như cửa kho, 2 ô khóa số) và không phải đơn vị đầu mối ngân quỹ: TĐV có thể văn bản cho giữ tại gian đếm; TK quản lý giữ 1 khóa số, chịu tài sản; lãnh đạo phòng/tổ KT giữ 1 khóa giám sát; tiền để trong két/tủ/hòm tôn/xe lưới thép có khóa. Không kho: VP TSC / VP đại diện / đơn vị sự nghiệp để két phòng nghiệp vụ; chi nhánh/PGD để két 3 khóa, niêm phong, bố trí người bảo vệ.</td><td>Văn bản giao trách nhiệm chìa gian đếm nếu dùng gian đếm</td><td>—</td></tr>
+      <tr><td>13</td><td>TK/TQ, lãnh đạo KT chứng kiến</td><td>Đầu buổi chiều: kiểm tình trạng niêm phong theo S 05, khớp rồi mới mở giao dịch. Niêm phong hỏng / lệch: giữ hiện trạng, báo TĐV, lập biên bản.</td><td>S 05/TTKQ</td><td>Nhắc 13:00 nếu chưa xác nhận niêm phong</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Không áp dụng giữ tiền tại gian đếm đối với đơn vị đầu mối hoạt động ngân quỹ.</p>
+
+  <h3 class="nhanh" id="luong-3c">3C. Cuối ngày giao dịch</h3>
+  <div class="diagram">
+    <p class="caption">Sơ đồ 3C — Điều 12 khoản 3, Điều 52 khoản 5, Điều 55 khoản 3</p>
+    <pre class="mermaid">
+flowchart TB
+  G1["1. Kết thúc giao dịch cuối giờ"] --> G2["2. Kiểm kê tiền, tài sản quý,<br/>GTCG, ACQT, thùng/hòm nguyên niêm phong<br/>kể cả trong kho"]
+  G2 --> G3["3. Đối chiếu khớp chứng từ,<br/>sổ kho quỹ, IPCAS"]
+  G3 --> G4{"4. Khớp?"}
+  G4 -->|Không| G4b["4b. Biên bản lệch<br/>báo TĐV, TPKT ngay"]
+  G4 -->|Có| G5{"5. Đơn vị có kho tiền<br/>và Ban quản lý kho?"}
+  G5 -->|Có| G6["6. Toàn bộ vào kho tiền đơn vị<br/>Ban QL kho / người giữ chìa két 3 khóa<br/>kiểm kê cuối ngày"]
+  G5 -->|Không| G7{"7. Loại đơn vị?"}
+  G7 -->|VP TSC, VP đại diện,<br/>đơn vị sự nghiệp| G8["8. Toàn bộ vào két sắt<br/>phòng nghiệp vụ"]
+  G7 -->|Phòng giao dịch| G9["9. Điều chuyển số dư tồn quỹ trên IPCAS<br/>nộp toàn bộ tồn thực tế tiền,<br/>ngoại tệ; gửi tài sản theo túi/bì<br/>hoặc thùng/hòm niêm phong<br/>về kho chi nhánh quản lý"]
+  G7 -->|Chi nhánh loại II| G10["10. Chọn một cách:<br/>điều chuyển IPCAS + nộp tồn thực tế<br/>+ gửi thùng/hòm về kho CN I<br/>HOẶC gửi toàn bộ hiện vật<br/>thùng/hòm niêm phong về kho CN I"]
+  G6 --> G11["11. Ký xác nhận tồn quỹ cuối ngày<br/>trên sổ kho quỹ"]
+  G8 --> G11
+  G9 --> G11
+  G10 --> G11
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>TQ, TK, TPKT</td><td>Kết thúc giao dịch cuối giờ làm việc hàng ngày.</td><td>—</td><td>Nhắc 16:30 nếu chưa khóa sổ</td></tr>
+      <tr><td>2</td><td>Thành viên Ban QL kho / thành viên giữ chìa két 3 khóa / két phòng nghiệp vụ; GĐ có thể bố trí thêm người giúp việc</td><td>Kiểm kê tiền mặt, tài sản quý, GTCG, ACQT (kể cả trong kho) và thùng/hòm nguyên niêm phong.</td><td>Sổ kho quỹ</td><td>—</td></tr>
+      <tr><td>3</td><td>TPKT, TK, TQ</td><td>Đối chiếu tồn thực tế với chứng từ, sổ kho quỹ, sổ kế toán IPCAS.</td><td>Sổ kho quỹ, IPCAS</td><td>—</td></tr>
+      <tr><td>4</td><td>TPKT báo TĐV</td><td>Không khớp: lập biên bản, báo ngay lãnh đạo; không đóng kho như bình thường cho đến khi có hướng xử lý.</td><td>Biên bản lệch</td><td>Ngay</td></tr>
+      <tr><td>5–6</td><td>Ban quản lý kho tiền</td><td>Đơn vị có kho và Ban QL kho: toàn bộ tiền, tài sản bảo quản trong kho tiền của đơn vị. Giám sát kiểm kê cuối ngày theo quy định.</td><td>Sổ vào ra kho S 06 nếu mở kho</td><td>—</td></tr>
+      <tr><td>7–8</td><td>Lãnh đạo phòng/bộ phận kế toán, người giữ chìa két</td><td>VP Trụ sở chính, VP đại diện, đơn vị sự nghiệp không có kho/Ban QL kho: bảo quản trong két sắt phòng nghiệp vụ.</td><td>—</td><td>—</td></tr>
+      <tr><td>9</td><td>PGD</td><td>Điều chuyển trên IPCAS và nộp toàn bộ tồn quỹ thực tế tiền mặt, ngoại tệ tiền mặt; gửi toàn bộ tài sản tồn thực tế theo túi/bì và/hoặc thùng/hòm niêm phong về kho tiền chi nhánh quản lý. PGD gửi bảo quản tại kho đơn vị đầu mối ngân quỹ thì theo quy định riêng Agribank.</td><td>Chứng từ điều chuyển IPCAS, niêm phong</td><td>Trong ngày</td></tr>
+      <tr><td>10</td><td>Chi nhánh loại II</td><td>Chọn một: (i) điều chuyển IPCAS + nộp tồn thực tế + gửi thùng/hòm về kho CN loại I quản lý; hoặc (ii) gửi toàn bộ tiền, tài sản tồn thực tế theo thùng/hòm niêm phong về kho CN loại I.</td><td>Lệnh/chứng từ nộp quỹ, niêm phong</td><td>Trong ngày</td></tr>
+      <tr><td>11</td><td>TPKT</td><td>Ký xác nhận tồn quỹ thực tế cuối ngày trên sổ kho quỹ, biên bản kiểm kê nếu có.</td><td>Sổ kho quỹ</td><td>Nhắc 17:00 nếu chưa ký</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="nhanh" id="luong-3d">3D. Kiểm kê ngày 01 hàng tháng</h3>
+  <div class="diagram">
+    <p class="caption">Sơ đồ 3D — Điều 52 khoản 2; nếu trùng ngày nghỉ thì chuyển ngày làm việc tiếp theo</p>
+    <pre class="mermaid">
+flowchart TB
+  H1["1. Thời điểm 0 giờ ngày 01<br/>nếu nghỉ thì ngày LV tiếp"] --> H2["2. TĐV ký QĐ thành lập HĐKK"]
+  H2 --> H3["3. HĐKK có mặt đủ thành phần<br/>TK/TQ chứng kiến"]
+  H3 --> H4["4. Xuất trình hiện vật, sổ<br/>bên bảo quản không trực tiếp đếm"]
+  H4 --> H5["5. Kiểm kê tiền, tài sản trong kho<br/>khớp sổ kho quỹ và IPCAS"]
+  H5 --> H6{"6. Khớp?"}
+  H6 -->|Lệch| H6b["6b. Biên bản thừa/thiếu"]
+  H6 -->|Khớp| H7["7. Ký biên bản kiểm kê tháng"]
+  H6b --> H7
+  H7 --> H8["8. GĐ PGD: trong tháng phải<br/>trực tiếp tham gia kiểm kê kho PGD<br/>ít nhất một lần"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>TPKT, TĐV</td><td>Mở kỳ kiểm kê tiền, tài sản bảo quản trong kho tiền mỗi tháng 01 lần, thời điểm 0 giờ ngày 01. Trùng ngày nghỉ thì chuyển sang ngày làm việc tiếp theo. Có thể làm trước hoặc sau thời điểm 0 giờ trong khoảng không phát sinh số liệu so với thời điểm khóa sổ đơn vị.</td><td>—</td><td>Nhắc T-2, T-1, sáng ngày D</td></tr>
+      <tr><td>2</td><td>TĐV</td><td>Ký quyết định thành lập HĐKK đơn vị và PGD phụ thuộc.</td><td>QĐ HĐKK</td><td>—</td></tr>
+      <tr><td>3</td><td>HĐKK</td><td>Có mặt: Chủ tịch TĐV/người ủy quyền; TPKT/Tổ trưởng KT–NQ; KTGS; giúp việc; TK/TQ chứng kiến.</td><td>QĐ HĐKK</td><td>—</td></tr>
+      <tr><td>4</td><td>Thủ kho / người bảo quản</td><td>Xuất trình hiện vật, sổ; không trực tiếp kiểm đếm; chứng kiến.</td><td>Sổ kho quỹ</td><td>—</td></tr>
+      <tr><td>5</td><td>HĐKK</td><td>Kiểm kê, đối chiếu thực tế — sổ kho quỹ — IPCAS. TSGH: Giám đốc CN có thể văn bản cho kiểm kê mỗi quý ít nhất 01 lần (0 giờ ngày 01 tháng/quý tiếp theo) và chịu trách nhiệm an toàn tài sản.</td><td>Biên bản kiểm kê</td><td>—</td></tr>
+      <tr><td>6</td><td>HĐKK, TĐV, TPKT, KTGS</td><td>Lệch thì lập biên bản thừa/thiếu, xem xét, truy trách nhiệm.</td><td>Biên bản thừa/thiếu</td><td>Trong buổi</td></tr>
+      <tr><td>7</td><td>Thành viên HĐKK</td><td>Ký biên bản công khai.</td><td>Biên bản đã ký</td><td>—</td></tr>
+      <tr><td>8</td><td>Giám đốc PGD</td><td>Trực tiếp tham gia kiểm kê tiền, tài sản bảo quản trong kho tại PGD ít nhất một lần trong tháng (và tại 0 giờ 01/01, 01/07) để nắm thực trạng và điều hành kho quỹ.</td><td>Biên bản kiểm kê PGD</td><td>Nhắc giữa tháng nếu GĐ PGD chưa tham gia lần nào</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="nhanh" id="luong-3e">3E. Tổng kiểm kê 0 giờ ngày 01 tháng 01 và ngày 01 tháng 07</h3>
+  <div class="diagram">
+    <p class="caption">Sơ đồ 3E — Điều 52 khoản 1, Điều 55 khoản 5</p>
+    <pre class="mermaid">
+flowchart TB
+  I1["1. Thời điểm 0 giờ 01/01 hoặc 01/07"] --> I2["2. Mọi PGD điều chuyển số dư tồn quỹ IPCAS<br/>và nộp toàn bộ tiền, tài sản quý, ACQT<br/>tồn thực tế về chi nhánh quản lý"]
+  I2 --> I3["3. TĐV ký QĐ thành lập HĐKK"]
+  I3 --> I4["4. TĐV và TPKT / Tổ trưởng KT-NQ<br/>trực tiếp tham gia kiểm kê kho"]
+  I4 --> I5["5. HĐKK đủ thành phần, TK/TQ chứng kiến"]
+  I5 --> I6["6. Kiểm kê toàn diện an toàn kho quỹ<br/>và tổng kiểm kê tiền, tài sản"]
+  I6 --> I7{"7. Khớp sổ và IPCAS?"}
+  I7 -->|Lệch| I7b["7b. Biên bản thừa/thiếu"]
+  I7 -->|Khớp| I8["8. Ký biên bản tổng kiểm kê"]
+  I7b --> I8
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Toàn đơn vị</td><td>Kiểm tra toàn diện công tác bảo đảm an toàn kho quỹ và tổng kiểm kê tiền mặt, tài sản mỗi năm 02 lần, thời điểm 0 giờ ngày 01/01 và 01/07.</td><td>—</td><td>Nhắc T-7, T-2, T-1</td></tr>
+      <tr><td>2</td><td>Mọi Phòng giao dịch</td><td>Điều chuyển số dư tồn quỹ trên IPCAS và nộp toàn bộ tiền mặt, tài sản quý, ACQT tồn thực tế về chi nhánh quản lý để tổng kiểm kê. Cuối tháng, PGD đang gửi bảo quản thùng/hòm niêm phong tại kho đơn vị đầu mối ngân quỹ cũng phải điều chuyển số dư IPCAS và nộp toàn bộ hiện vật về chi nhánh quản lý để kiểm kê.</td><td>Chứng từ IPCAS, phiếu nộp, niêm phong</td><td>Nhắc T-3 nếu PGD chưa nộp tồn</td></tr>
+      <tr><td>3</td><td>TĐV</td><td>Ký quyết định thành lập HĐKK.</td><td>QĐ HĐKK</td><td>—</td></tr>
+      <tr><td>4</td><td>TĐV và TPKT / Tổ trưởng KT–NQ</td><td>Trực tiếp tham gia kiểm kê tiền, tài sản bảo quản trong kho tiền theo quy định để nắm thực trạng toàn bộ và điều hành kịp thời hoạt động kho quỹ.</td><td>—</td><td>Bắt buộc có mặt, không ủy quyền nội dung này đối với khoản TPKT không được ủy quyền tại điểm e một số đơn vị — TĐV/TPKT phải trực tiếp</td></tr>
+      <tr><td>5</td><td>HĐKK</td><td>Đủ thành phần như 3A bước 3; TK/TQ chứng kiến.</td><td>QĐ HĐKK</td><td>—</td></tr>
+      <tr><td>6</td><td>HĐKK</td><td>Tổng kiểm kê, đối chiếu thực tế — sổ — IPCAS; kiểm tra an toàn kho quỹ.</td><td>Biên bản tổng kiểm kê</td><td>—</td></tr>
+      <tr><td>7</td><td>TĐV, TPKT, KTGS</td><td>Lệch: biên bản thừa/thiếu, truy trách nhiệm.</td><td>Biên bản thừa/thiếu</td><td>Ngay</td></tr>
+      <tr><td>8</td><td>HĐKK</td><td>Ký biên bản công khai.</td><td>Biên bản đã ký</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="nhanh" id="luong-3f">3F. Kiểm kê đột xuất</h3>
+  <div class="diagram">
+    <p class="caption">Sơ đồ 3F — Điều 52 khoản 6</p>
+    <pre class="mermaid">
+flowchart TB
+  J1{"1. Tình huống đột xuất?"} --> J2["2a. Thay đổi thành viên giữ chìa<br/>hoặc mã số cửa kho / két 3 khóa"]
+  J1 --> J3["2b. Thay đổi khóa hoặc bị mất chìa cửa kho"]
+  J1 --> J4["2c. Nghi kẻ gian xâm nhập kho,<br/>quầy thu chi, hoặc hàng trên đường;<br/>phát hiện nhầm lẫn khi xuất/nhập kho, thu/chi"]
+  J1 --> J5["2d. Lệnh TĐV / cấp có thẩm quyền"]
+  J2 --> J6["3. TĐV ra lệnh kiểm kê đột xuất<br/>ký QĐ thành lập HĐKK"]
+  J3 --> J6
+  J4 --> J6
+  J5 --> J6
+  J6 --> J7["4. Nếu nghi xâm nhập: giữ nguyên hiện trường<br/>báo Công an, lập biên bản<br/>rồi mới mở khóa vào kho"]
+  J7 --> J8["5. HĐKK có mặt, bên bảo quản xuất trình,<br/>không trực tiếp đếm"]
+  J8 --> J9["6. Kiểm kê toàn bộ tài sản liên quan<br/>khớp sổ và IPCAS"]
+  J9 --> J10{"7. Khớp?"}
+  J10 -->|Lệch| J10b["7b. Biên bản thừa/thiếu<br/>truy trách nhiệm"]
+  J10 -->|Khớp| J11["8. Ký biên bản kiểm kê đột xuất"]
+  J10b --> J11
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1–2</td><td>Người phát hiện / TĐV</td><td>Mở việc khi: thay đổi thành viên giữ chìa khóa, mã số cửa kho hoặc két sắt 3 khóa; thay khóa hoặc bị mất chìa cửa kho; nghi kẻ gian xâm nhập kho tiền, quầy thu chi, hoặc tiền/tài sản vận chuyển trên đường; phát hiện nhầm lẫn về tài sản khi xuất/nhập kho và thu/chi; hoặc lệnh cấp có thẩm quyền.</td><td>Báo cáo / lệnh</td><td>SMS khẩn TĐV + TPKT nếu nghi xâm nhập</td></tr>
+      <tr><td>3</td><td>TĐV</td><td>Ra lệnh kiểm kê đột xuất, ký QĐ thành lập HĐKK.</td><td>QĐ HĐKK, lệnh kiểm kê</td><td>Ngay</td></tr>
+      <tr><td>4</td><td>Thành viên giữ chìa, BV, TĐV</td><td>Nếu thấy dấu hiệu đã có kẻ gian xâm nhập: giữ nguyên hiện trường, thông báo Công an đến xem xét, lập biên bản; sau đó mới mở khóa vào kho.</td><td>Biên bản hiện trường</td><td>Không mở khóa trước khi Công an có mặt nếu đã có dấu xâm nhập</td></tr>
+      <tr><td>5</td><td>HĐKK</td><td>Có mặt đủ thành phần; bên bảo quản xuất trình hiện vật, sổ; không trực tiếp đếm; chứng kiến.</td><td>QĐ HĐKK</td><td>—</td></tr>
+      <tr><td>6</td><td>HĐKK</td><td>Kiểm kê toàn bộ tài sản liên quan; đối chiếu sổ kho quỹ và IPCAS.</td><td>Biên bản kiểm kê</td><td>—</td></tr>
+      <tr><td>7</td><td>TĐV, TPKT, KTGS</td><td>Lệch: biên bản thừa/thiếu, truy trách nhiệm, thu hồi giá trị thiếu/mất.</td><td>Biên bản thừa/thiếu</td><td>Ngay</td></tr>
+      <tr><td>8</td><td>HĐKK</td><td>Ký biên bản công khai.</td><td>Biên bản đã ký</td><td>—</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== LUỒNG 4 ========== -->
+<section class="luong" id="luong-4">
+  <h2>Luồng 4 — Xuất kho phục vụ quỹ ngày (mẫu 12/TTKQ)</h2>
+  <p class="meta">Điều 12 khoản 1 — không áp dụng đơn vị đầu mối hoạt động ngân quỹ</p>
+  <div class="chips">
+    <span class="chip">Khi nào: cần một lượng tiền mặt, ngoại tệ, ACQT trong giờ giao dịch tại quầy/két quỹ ngày</span>
+  </div>
+  <div class="box">
+    <h3>Ai tham gia</h3>
+    <ul>
+      <li>Thủ quỹ chính / Thủ quỹ kiêm Thủ kho (người đề nghị và nhận)</li>
+      <li>TPKT / Tổ trưởng KT–NQ kiểm soát</li>
+      <li>Giám đốc CN hoặc GĐ PGD phê duyệt và chịu trách nhiệm an toàn</li>
+      <li>Ban quản lý kho tiền: đủ mặt mỗi lần mở/đóng cửa kho</li>
+    </ul>
+  </div>
+  <div class="diagram">
+    <p class="caption">Sơ đồ Luồng 4</p>
+    <pre class="mermaid">
+flowchart TB
+  K1["1. TQ chính / TQ lập Giấy đề nghị<br/>xuất kho mẫu 12/TTKQ"] --> K2["2. TPKT / Tổ trưởng KT-NQ kiểm soát"]
+  K2 --> K3["3. GĐ CN / GĐ PGD phê duyệt"]
+  K3 --> K4["4. Ban QL kho đủ mặt<br/>mở cửa kho từng lần:<br/>vào Thủ kho vào đầu<br/>mở khóa GĐ rồi TPKT rồi Thủ kho"]
+  K4 --> K5["5. Xuất đúng số trên mẫu 12<br/>giao TQ chính / TQ"]
+  K5 --> K6["6. Ghi S 04/TTKQ giao nhận nội bộ"]
+  K6 --> K7["7. Đóng cửa kho:<br/>Thủ kho ra cuối<br/>đóng khóa Thủ kho rồi TPKT rồi GĐ"]
+  K7 --> K8["8. Bảo quản trong két/tủ có khóa<br/>tại gian đếm hoặc khu vực quầy quỹ"]
+  K8 --> K9["9. Trong giờ GD: sắp theo loại,<br/>không để tiền đã giao trên mặt bàn"]
+  K9 --> K10["10. Cuối ngày: xếp các mẫu 12<br/>phía dưới bảng kê nộp, bảng kê chi;<br/>tồn thừa nhập lại kho"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Thủ quỹ chính / Thủ quỹ</td><td>Lập Giấy đề nghị xuất kho tiền mặt, ngoại tệ tiền mặt, ấn chỉ quan trọng mẫu 12/TTKQ, số lượng phù hợp giao dịch trong ngày.</td><td>Mẫu 12/TTKQ</td><td>—</td></tr>
+      <tr><td>2</td><td>Trưởng phòng / Tổ trưởng KT–NQ</td><td>Kiểm soát tính hợp lý, hợp lệ của đề nghị.</td><td>Mẫu 12 đã kiểm soát</td><td>—</td></tr>
+      <tr><td>3</td><td>Giám đốc CN / GĐ PGD</td><td>Phê duyệt. Chịu trách nhiệm về việc cho phép xuất kho một lượng tiền/ACQT giao cho TQ chính/TQ kiêm Thủ kho quản lý trong ngày. Đơn vị phải tăng cường biện pháp an toàn.</td><td>Mẫu 12 đã phê duyệt</td><td>—</td></tr>
+      <tr><td>4</td><td>Ban quản lý kho tiền</td><td>Đủ mặt để mở cửa kho từng lần. Thủ kho vào đầu tiên. Mở khóa theo thứ tự: Giám đốc, rồi TPKT/Tổ trưởng KT–NQ, rồi Thủ kho. Trước khi mở: quan sát ngoài khóa và cửa; nghi vấn ghi đầy đủ trước khi mở; dấu xâm nhập thì giữ hiện trường, báo Công an, lập biên bản rồi mới mở.</td><td>S 06/TTKQ vào ra kho</td><td>—</td></tr>
+      <tr><td>5</td><td>Thủ kho giao, TQ nhận</td><td>Xuất đúng loại, đúng số trên mẫu 12.</td><td>Mẫu 12</td><td>Nhắc nếu đã duyệt quá 30 phút chưa xuất</td></tr>
+      <tr><td>6</td><td>Hai bên</td><td>Ghi Sổ theo dõi giao nhận nội bộ S 04/TTKQ.</td><td>S 04/TTKQ</td><td>—</td></tr>
+      <tr><td>7</td><td>Ban QL kho</td><td>Thủ kho kiểm lần cuối, ra cuối cùng. Đóng khóa thứ tự ngược: Thủ kho, TPKT, Giám đốc. Ký S 06.</td><td>S 06/TTKQ</td><td>—</td></tr>
+      <tr><td>8</td><td>TQ chính / TQ kiêm Thủ kho</td><td>Bảo quản số đã xuất trong két sắt/tủ sắt có khóa đặt tại gian đếm hoặc khu vực quầy quỹ.</td><td>—</td><td>—</td></tr>
+      <tr><td>9</td><td>TQ / GDV</td><td>Trong giờ giao dịch: sắp tiền, tài sản theo từng loại gọn, ngăn nắp, bảo quản trong két/tủ khóa kín đáo; tiền lẻ thếp có thể ngăn kéo bàn quầy có khóa. Tuyệt đối không để tiền, tài sản đã giao nhận, kiểm đếm trên mặt bàn quầy hoặc trong rổ nhựa, thùng giấy.</td><td>—</td><td>—</td></tr>
+      <tr><td>10</td><td>TQ chính / TQ</td><td>Cuối ngày xếp các Giấy đề nghị mẫu 12 phía dưới bảng kê nộp, bảng kê chi theo thứ tự, lưu trữ bảo quản. Tồn còn lại nhập kho theo kiểm kê cuối ngày.</td><td>Mẫu 12, bảng kê nộp/chi</td><td>Cuối ngày; nhắc phiếu xuất chưa hoàn tất</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== LUỒNG 5 ========== -->
+<section class="luong" id="luong-5">
+  <h2>Luồng 5 — Thu / chi tiền mặt tại quầy với khách hàng</h2>
+  <p class="meta">Điều 4, 5, 6, 7 khoản 1; Phụ lục II</p>
+  <div class="chips">
+    <span class="chip">Khi nào: khách hàng nộp hoặc lĩnh tiền mặt, ngoại tệ tiền mặt, GTCG tại quầy</span>
+  </div>
+  <div class="box">
+    <h3>Ai tham gia</h3>
+    <ul>
+      <li>Khách hàng; GDV / Thủ quỹ / Thủ quỹ chính</li>
+      <li>Người hạch toán, kiểm soát viên, người phê duyệt (nếu giao dịch yêu cầu)</li>
+    </ul>
+  </div>
+  <div class="diagram">
+    <p class="caption">Sơ đồ Luồng 5</p>
+    <pre class="mermaid">
+flowchart TB
+  L1["1. Tiếp nhận chứng từ kế toán"] --> L2["2. Kiểm soát hợp lệ, hợp pháp"]
+  L2 --> L3{"3. Thu hay chi?"}
+  L3 -->|Thu| L4["4. KH lập bảng kê nộp<br/>có thể một bảng kê nhiều chứng từ<br/>cùng KH cùng lúc"]
+  L3 -->|Chi| L5["5. GDV/TQ lập bảng kê chi"]
+  L4 --> L6["6. Kiểm đếm theo tờ hoặc miếng<br/>KH nộp phải chứng kiến<br/>khu vực có camera"]
+  L5 --> L7["7. Hạch toán IPCAS trước<br/>rồi mới chi tiền"]
+  L6 --> L8["8. Thu tiền trước<br/>rồi mới hạch toán IPCAS"]
+  L7 --> L9["9. Tiền chi đủ tiêu chuẩn lưu thông<br/>KH lĩnh kiểm trước khi rời quầy<br/>dưới sự chứng kiến cán bộ"]
+  L8 --> L10["10. Chữ ký đủ: người nộp/lĩnh,<br/>người thu/chi, hạch toán, KSV,<br/>phê duyệt nếu có"]
+  L9 --> L10
+  L10 --> L11["11. Tổng bảng kê khớp chứng từ,<br/>sổ kho quỹ, IPCAS"]
+  L11 --> L12["12. Cuối ngày đóng tập bảng kê riêng<br/>nộp trên, chi dưới, theo từng GDV/TQ"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>GDV / TQ</td><td>Mọi khoản thu, chi tiền mặt, ngoại tệ, GTCG phải qua quỹ đơn vị, căn cứ chứng từ kế toán.</td><td>Chứng từ kế toán</td><td>—</td></tr>
+      <tr><td>2</td><td>GDV, KSV</td><td>Trước khi thu, chi: kiểm soát tính hợp lệ, hợp pháp của chứng từ.</td><td>Chứng từ đã kiểm soát</td><td>—</td></tr>
+      <tr><td>3–5</td><td>KH / GDV</td><td>Mỗi chứng từ thu/chi phải lập bảng kê nộp/chi hoặc biên bản giao nhận. Bảng kê nộp do khách hàng lập. Bảng kê chi do GDV/TQ/TQ chính lập. Có thể một bảng kê cho một hoặc nhiều chứng từ cùng một khách hàng cùng thời điểm (thu gốc, thu lãi, tất toán…); trên bảng kê ghi rõ số giao dịch của các chứng từ; tổng tiền bảng kê khớp tổng các chứng từ.</td><td>Bảng kê nộp / bảng kê chi / biên bản giao nhận</td><td>—</td></tr>
+      <tr><td>6</td><td>Cán bộ Agribank, KH chứng kiến</td><td>Thu: kiểm đếm chính xác theo tờ (tiền giấy) hoặc miếng (tiền kim loại), bó, bao, túi. Người nộp phải chứng kiến khi cán bộ kiểm đếm. Khu vực kiểm đếm, phân loại phải có camera rõ nét; thời gian camera khớp thực tế.</td><td>—</td><td>—</td></tr>
+      <tr><td>7</td><td>GDV / người hạch toán</td><td>Chi: hạch toán trước, chi tiền sau. Hạch toán đầy đủ IPCAS hoặc chương trình tương đương; kiểm soát, phê duyệt nếu yêu cầu.</td><td>IPCAS</td><td>—</td></tr>
+      <tr><td>8</td><td>GDV / người hạch toán</td><td>Thu: thu tiền trước, hạch toán sau.</td><td>IPCAS</td><td>—</td></tr>
+      <tr><td>9</td><td>KH lĩnh, cán bộ chứng kiến</td><td>Tiền chi cho khách là tiền đủ tiêu chuẩn lưu thông, đã kiểm đếm, hủy/xé bỏ niêm phong (trừ trường hợp kiểm đếm sau). Người lĩnh phải kiểm đếm trước khi rời quầy. Agribank không chịu trách nhiệm nếu tiền đã mang ra khỏi quầy.</td><td>—</td><td>—</td></tr>
+      <tr><td>10</td><td>Các bên</td><td>Chứng từ có chữ ký và họ tên người nộp/lĩnh; chữ ký người thu/chi, người hạch toán, KSV, người phê duyệt nếu có. Người thu/chi chịu trách nhiệm tính chính xác số tiền.</td><td>Chứng từ, bảng kê</td><td>—</td></tr>
+      <tr><td>11</td><td>GDV, TPKT</td><td>Tiền thu vào hay chi ra phải đủ, đúng tổng số (bằng số và bằng chữ), loại tiền tệ, khớp đúng thời gian trên chứng từ, sổ kho quỹ, sổ kế toán.</td><td>Sổ kho quỹ, IPCAS</td><td>Nhắc giao dịch treo lệch</td></tr>
+      <tr><td>12</td><td>TQ / GDV, bộ phận quản lý kho chứng từ</td><td>Cuối ngày đóng bảng kê nộp/chi thành tập riêng (không đóng vào nhật ký chứng từ), xếp theo từng GDV/TQ/TQ chính; bảng kê nộp xếp trên, bảng kê chi xếp dưới, trong từng phần theo thứ tự chứng từ kế toán (trừ khi có quy định khác). Bàn giao lưu trữ bảo quản.</td><td>Tập bảng kê ngày</td><td>Nhắc cuối ngày chưa đóng tập</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== LUỒNG 6 ========== -->
+<section class="luong" id="luong-6">
+  <h2>Luồng 6 — Thu tiền theo túi niêm phong</h2>
+  <p class="meta">Điều 7 khoản 2; Phụ lục III</p>
+  <div class="chips">
+    <span class="chip">Khi nào: khách nộp lượng lớn, chi nhánh không kiểm đếm kịp trong ngày, hai bên thỏa thuận</span>
+  </div>
+  <div class="box">
+    <h3>Điều kiện và người tham gia</h3>
+    <ul>
+      <li>Khách hàng có tài khoản tiền gửi đang hoạt động tại chi nhánh, có tín nhiệm, thường xuyên nộp tiền mặt với số lượng lớn</li>
+      <li>GDV, TPKT, TĐV, người kiểm đếm ngày làm việc tiếp theo; khách hàng chứng kiến khi kiểm</li>
+    </ul>
+  </div>
+  <div class="diagram">
+    <p class="caption">Sơ đồ Luồng 6</p>
+    <pre class="mermaid">
+flowchart TB
+  M1["1. Kiểm tra đủ điều kiện KH"] --> M2["2. Thỏa thuận thu theo túi niêm phong"]
+  M2 --> M3["3. Nhận túi, niêm phong đúng quy định<br/>ghi số túi, số tiền khai"]
+  M3 --> M4["4. GDV ghi Có tài khoản KH ngay trong ngày"]
+  M4 --> M5["5. Phong tỏa số tiền ghi Có<br/>đến khi kiểm đếm xong"]
+  M5 --> M6["6. Ngày làm việc tiếp theo:<br/>tổ chức kiểm đếm có chứng kiến"]
+  M6 --> M7{"7. Khớp với số ghi Có?"}
+  M7 -->|Khớp| M8["8. Giải tỏa phong tỏa, đóng việc"]
+  M7 -->|Lệch| M9["9. Giữ phong tỏa / điều chỉnh<br/>lập biên bản thừa hoặc thiếu"]
+  M9 --> M10["10. TĐV, TPKT, KTGS xem xét<br/>người có tên niêm phong:<br/>thiếu thì bồi 100% giá trị thiếu"]
+  M10 --> M11["11. Hạch toán điều chỉnh,<br/>thông báo KH, đóng khi xử lý xong"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>GĐ CN / TPKT</td><td>Xác nhận KH có TK tiền gửi đang hoạt động tại CN, tín nhiệm, thường xuyên nộp lớn; CN không kiểm đếm kịp trong ngày.</td><td>Hồ sơ KH</td><td>—</td></tr>
+      <tr><td>2</td><td>Chi nhánh và KH</td><td>Thỏa thuận áp dụng phương thức thu theo túi niêm phong; kiểm đếm vào ngày làm việc tiếp theo. Thực hiện theo hướng dẫn Phụ lục III.</td><td>Thỏa thuận / biên bản</td><td>—</td></tr>
+      <tr><td>3</td><td>GDV, KH</td><td>Nhận túi, niêm phong; ghi số túi, số tiền KH khai.</td><td>Niêm phong túi, bảng kê</td><td>Trong ngày nộp</td></tr>
+      <tr><td>4</td><td>GDV</td><td>Hạch toán ghi Có vào tài khoản khách hàng ngay trong ngày.</td><td>IPCAS</td><td>Trong ngày</td></tr>
+      <tr><td>5</td><td>GDV / TPKT</td><td>Phong tỏa số tiền đã ghi Có của khoản thu theo túi niêm phong cho đến khi Agribank hoàn thành kiểm đếm.</td><td>IPCAS phong tỏa</td><td>—</td></tr>
+      <tr><td>6</td><td>Cán bộ kiểm đếm, KH chứng kiến</td><td>Ngày làm việc tiếp theo: kiểm đếm theo tờ/miếng đúng quy trình Phụ lục III.</td><td>Biên bản kiểm đếm</td><td>Nhắc 08:00 ngày LV sau; quá 12:00 escalate TPKT/TĐV</td></tr>
+      <tr><td>7–8</td><td>GDV, TPKT</td><td>Khớp số kiểm đếm với số ghi Có: giải tỏa phong tỏa, đóng việc.</td><td>IPCAS giải tỏa</td><td>—</td></tr>
+      <tr><td>9–11</td><td>TĐV, TPKT, KTGS, người có tên trên niêm phong</td><td>Lệch: lập biên bản thừa/thiếu, giữ niêm phong. Thiếu: người có tên trên niêm phong bó/túi/hộp/bao/thùng bồi thường 100% giá trị thiếu; tái phạm thì kỷ luật. Thừa: hoàn trả KH theo biên bản đủ chữ ký; không hoàn được trong ngày thì hạch toán tài khoản thừa quỹ để theo dõi đến khi KH đến. Điều chỉnh hạch toán, thông báo KH, đóng việc khi xử lý xong.</td><td>Biên bản thừa/thiếu, chứng từ điều chỉnh</td><td>Xử lý ngay sau kiểm đếm</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== LUỒNG 7 ========== -->
+<section class="luong" id="luong-7">
+  <h2>Luồng 7 — Thu / chi tại địa chỉ khách hàng</h2>
+  <p class="meta">Điều 7 khoản 3; Điều 40–51 về vận chuyển</p>
+  <div class="chips">
+    <span class="chip">Khi nào: thu hoặc chi tiền mặt tại địa chỉ tổ chức/cá nhân, không tại quầy</span>
+  </div>
+  <div class="box">
+    <h3>Ai tham gia</h3>
+    <ul>
+      <li>Giám đốc chi nhánh (ra quyết định thành lập Tổ)</li>
+      <li>Tổ trưởng và thành viên Tổ thu/chi; bảo vệ, người áp tải, lái xe</li>
+      <li>Khách hàng tại địa chỉ</li>
+    </ul>
+  </div>
+  <div class="diagram">
+    <p class="caption">Sơ đồ Luồng 7</p>
+    <pre class="mermaid">
+flowchart TB
+  N1["1. GĐ CN ký QĐ thành lập Tổ thu/chi<br/>tại địa chỉ KH: tổ trưởng, thành viên,<br/>nhiệm vụ từng người"] --> N2["2. Ban hành Nội quy làm việc của Tổ<br/>an toàn tài sản và con người"]
+  N2 --> N3["3. Lập lệnh điều chuyển / giấy ủy quyền<br/>áp tải hàng đặc biệt mẫu 03/TTKQ"]
+  N3 --> N4["4. Phân công áp tải, bảo vệ, lái xe,<br/>xe đạt chuẩn; kiểm tra phương tiện"]
+  N4 --> N5["5. Đóng gói, niêm phong hàng nếu mang đi;<br/>xếp lên xe"]
+  N5 --> N6["6. Vận chuyển đến địa chỉ KH"]
+  N6 --> N7["7. Tại hiện trường: thu/chi đúng<br/>quy trình quầy — chứng từ, bảng kê,<br/>kiểm đếm chứng kiến, chữ ký"]
+  N7 --> N8["8. Về đơn vị: nhập quỹ / nhập kho<br/>đối chiếu sổ và IPCAS"]
+  N8 --> N9["9. Đủ biên bản giao nhận, đóng việc"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Giám đốc chi nhánh</td><td>Ban hành quyết định thành lập Tổ thu/chi tiền mặt tại địa chỉ khách hàng, gồm tổ trưởng và các thành viên; giao nhiệm vụ và trách nhiệm cụ thể từng người.</td><td>QĐ thành lập Tổ</td><td>Trước ngày thực hiện</td></tr>
+      <tr><td>2</td><td>GĐ CN, Tổ trưởng</td><td>Ban hành Nội quy làm việc của Tổ, bảo đảm an toàn tuyệt đối tài sản và con người; thu/chi tuân thủ đúng quy định, quy trình thu chi tiền mặt Agribank.</td><td>Nội quy Tổ</td><td>—</td></tr>
+      <tr><td>3</td><td>GĐ CN</td><td>Ký lệnh điều chuyển kiêm giấy ủy quyền áp tải hàng đặc biệt mẫu 03/TTKQ (thu/chi lưu động thuộc điều chuyển nội bộ chi nhánh do GĐ CN ký lệnh).</td><td>Mẫu 03/TTKQ</td><td>—</td></tr>
+      <tr><td>4</td><td>Tổ trưởng, BV, lái xe</td><td>Phân công người áp tải, bảo vệ, người điều khiển phương tiện; xe chở tiền đạt tiêu chuẩn kỹ thuật NHNN và Agribank. Tổ chức áp tải, bảo vệ trên đường theo quy định vận chuyển hàng đặc biệt.</td><td>Danh sách tổ xe</td><td>Nhắc nếu đến giờ xuất phát chưa đủ người</td></tr>
+      <tr><td>5</td><td>Tổ thu/chi, Thủ kho</td><td>Đóng gói, niêm phong hàng đặc biệt (nếu mang tiền đi chi); xếp lên phương tiện.</td><td>Niêm phong, sổ vận chuyển</td><td>—</td></tr>
+      <tr><td>6</td><td>Áp tải, BV, lái xe</td><td>Vận chuyển đến địa chỉ KH; bảo mật thông tin tuyến đường; bảo đảm an toàn trên đường.</td><td>Sổ theo dõi vận chuyển</td><td>Nhắc quá ETA chưa đến / chưa về</td></tr>
+      <tr><td>7</td><td>Tổ thu/chi, KH</td><td>Tại địa chỉ: kiểm soát chứng từ; bảng kê; thu thì thu tiền trước hạch toán sau; chi thì hạch toán trước chi sau; kiểm đếm có chứng kiến; chữ ký đủ; tiền chi đủ tiêu chuẩn lưu thông.</td><td>Chứng từ, bảng kê</td><td>—</td></tr>
+      <tr><td>8</td><td>Tổ, TK, TPKT</td><td>Về đơn vị: nhập quỹ hoặc nhập kho, đối chiếu sổ kho quỹ và IPCAS.</td><td>Phiếu nhập, IPCAS</td><td>Nhắc nếu đã về chưa nhập kho</td></tr>
+      <tr><td>9</td><td>Tổ trưởng, TĐV</td><td>Đủ biên bản, đóng việc. Sự cố thừa/thiếu hoặc mất trên đường: lập biên bản, TĐV quyết định kiểm kê tài sản liên quan, báo cáo theo quy định thừa/thiếu.</td><td>Biên bản hoàn thành</td><td>—</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== LUỒNG 8 ========== -->
+<section class="luong" id="luong-8">
+  <h2>Luồng 8 — Giao nhận trong ngành ngân hàng và Hội đồng kiểm đếm</h2>
+  <p class="meta">Điều 8, 9, 10, Điều 55 khoản 2 — hạn kiểm đếm sau tối đa 5 ngày làm việc</p>
+  <div class="chips">
+    <span class="chip">Khi nào: giao nhận tiền mặt / ngoại tệ / GTCG / ACQT với NHNN, KBNN, TCTD khác hoặc nội bộ Agribank</span>
+  </div>
+  <div class="box">
+    <h3>Ai tham gia</h3>
+    <ul>
+      <li>Đơn vị giao, đơn vị nhận; Thủ kho / TQ; TĐV ký QĐ HĐKĐ</li>
+      <li>HĐKĐ: Chủ tịch TĐV/người ủy quyền; TPKT; KTGS; giúp việc; TK/TQ thành viên nếu cần; người chứng kiến bên giao nếu có</li>
+    </ul>
+  </div>
+  <div class="diagram">
+    <p class="caption">Sơ đồ A — chọn hình thức giao nhận và cách kiểm đếm</p>
+    <pre class="mermaid">
+flowchart TB
+  P1["1. Xác định bên giao, bên nhận,<br/>loại hàng, nội bộ hay với NHNN/KBNN/TCTD"] --> P2["2. Chọn hình thức giao nhận<br/>bó 10 thếp giấy / túi 20 thỏi kim loại<br/>hoặc thếp, tờ lẻ, thỏi, miếng<br/>theo đúng cặp đơn vị"]
+  P2 --> P3{"3. Bên nhận chọn cách kiểm?"}
+  P3 -->|Kiểm tờ/miếng ngay| P4["4. Kiểm đếm ngay, khớp thì nhận"]
+  P3 -->|Chấp nhận đủ số| P5["5. Bên giao hủy/xé niêm phong<br/>trước khi giao cho bên nhận"]
+  P3 -->|Hội đồng kiểm đếm sau| P6["6. Thỏa thuận ngày kiểm<br/>tối đa 5 ngày làm việc<br/>kể từ ngày giao nhận"]
+  P6 --> P7["7. TĐV đơn vị nhận ký QĐ HĐKĐ"]
+  P7 --> P8["8. Bên giao cử người chứng kiến<br/>hoặc văn bản báo không cử người"]
+  P4 --> P9{"9. Có sai sót?"}
+  P5 --> P10["10. Kết thúc giao nhận đủ số"]
+  P8 --> P11["11. Đến ngày thỏa thuận: HĐKĐ kiểm"]
+    </pre>
+  </div>
+  <div class="diagram">
+    <p class="caption">Sơ đồ B — trình tự Hội đồng kiểm đếm từng bó/túi</p>
+    <pre class="mermaid">
+flowchart TB
+  Q1["1. HĐKĐ + chứng kiến bên giao nếu có"] --> Q2["2. Kiểm đếm bó/túi còn nguyên niêm phong"]
+  Q2 --> Q3["3. Mới cắt dây, mở bó/túi<br/>giữ giấy niêm phong đến khi xong<br/>không để lẫn niêm phong bó khác"]
+  Q3 --> Q4["4. Kiểm đếm tờ / miếng"]
+  Q4 --> Q5{"5. Kết quả?"}
+  Q5 -->|Không sai sót| Q6["6. Hủy niêm phong cũ<br/>niêm phong mới của người kiểm đếm<br/>đóng gói tại đơn vị nhận"]
+  Q5 -->|Thừa, thiếu, lẫn loại, tiền giả| Q7["7. Báo ngay HĐKĐ và người chứng kiến<br/>kiểm tra lại"]
+  Q7 --> Q8["8. HĐ xác định đúng sai sót:<br/>ghi mặt sau tờ niêm phong:<br/>ngày kiểm, kết quả, ký<br/>chứng kiến ký nếu có"]
+  Q8 --> Q9["9. Nộp HĐKĐ lập biên bản"]
+  Q9 --> Q10["10. Bên nhận gửi biên bản kèm niêm phong<br/>bó/túi sai cho bên giao xử lý, thanh toán"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>A1</td><td>TPKT, TK</td><td>Xác định cặp giao nhận: Agribank với Sở GD NHNN / NHNN khu vực / NHNN chi nhánh, KBNN, TCTD khác cùng tỉnh và ngược lại; hoặc nội bộ Agribank.</td><td>Lệnh điều chuyển / giấy giao nhận</td><td>—</td></tr>
+      <tr><td>A2</td><td>Hai bên</td><td>Với NHNN/KBNN/TCTD: giao theo bó đủ 10 thếp nguyên niêm phong (tiền giấy) hoặc túi đủ 20 thỏi nguyên niêm phong (tiền kim loại); tiền mới in/đúc theo bao, hộp, thùng nguyên niêm phong cơ sở in/đúc hoặc NHNN; tiền đã thông báo ngừng phát hành ra lưu thông nhưng không còn thu thường xuyên có thể theo túi nếu không chẵn bó. Nội bộ CN loại I với nhau (kể CN đầu mối) hoặc các CN loại II trong cùng CN I: bó 10 thếp / túi 20 thỏi nguyên niêm phong. CN I với CN II; CN I/II với PGD phụ thuộc; giữa GDV, TQ chính, TQ với nhau: bó nguyên niêm phong, thếp, tờ lẻ (giấy) hoặc túi nguyên niêm phong, thỏi, miếng (kim loại). TQ chính/TQ không được dùng bó/túi nguyên niêm phong đã thu của GDV, PGD để chi, tiếp quỹ lại chính GDV, PGD đó. Tiền không đủ tiêu chuẩn lưu thông nội bộ: theo bó/túi nguyên hoặc thếp/tờ/thỏi/miếng. Tiền giả / tiền nghi giả: giao theo tờ. Đơn vị đầu mối ngân quỹ: theo quy định riêng TGĐ. Ngoại tệ, GTCG, ACQT: giao nhận và kiểm đếm theo tờ, quy trình như thu chi tiền mặt; hạch toán từng loại ngoại tệ. GTCG lưu NHNN tham gia thị trường tiền tệ: bó 10 thếp cùng chủng loại, cùng mệnh giá; không đủ bó thì theo tờ.</td><td>Biên bản giao nhận, niêm phong</td><td>—</td></tr>
+      <tr><td>A3–A5</td><td>Đơn vị nhận</td><td>Sau khi nhận bó/túi nguyên niêm phong với NHNN/KBNN/TCTD: thông báo ngay cho bên giao một trong các hình thức: kiểm đếm tờ/miếng ngay; hoặc không kiểm tờ/miếng mà chấp nhận đủ số — trường hợp này bên giao phải hủy/xé bỏ ngay niêm phong bó/túi trước khi giao cho bên nhận; hoặc thành lập Hội đồng kiểm đếm.</td><td>Thông báo cách kiểm</td><td>Ngay sau giao nhận</td></tr>
+      <tr><td>A6–A8</td><td>Hai đơn vị, TĐV bên nhận</td><td>Kiểm đếm sau: thỏa thuận ngày kiểm trong thời hạn tối đa 05 ngày làm việc kể từ ngày giao nhận. Đơn vị nhận thành lập HĐKĐ. Bên giao phải cử người chứng kiến hoặc có văn bản thông báo không cử người. Người chứng kiến là đại diện bên giao, trực tiếp quan sát, xác nhận sai sót, ký mặt sau giấy niêm phong bó/túi đó và trên biên bản kiểm đếm. Nội bộ: CN I với nhau, CN I với CN II, các CN II cùng CN I, hoặc CN nhận từ PGD: kiểm tờ/miếng ngay hoặc lập HĐKĐ. Bó đủ 10 thếp nguyên niêm phong nhận từ PGD: CN lập HĐKĐ, không cần người PGD chứng kiến. PGD nhận tiền từ chi nhánh quản lý: phải kiểm đếm ngay sau khi nhận.</td><td>QĐ HĐKĐ, văn bản thỏa thuận ngày kiểm</td><td>Tối đa 5 ngày LV. Nhắc mỗi sáng đến hạn. Quá hạn thỏa thuận mà nhận chưa lập HĐ hoặc kiểm không đúng: bên nhận chịu nếu thừa/thiếu</td></tr>
+      <tr><td>B1–B6</td><td>HĐKĐ</td><td>Thành phần HĐKĐ: Chủ tịch TĐV/người ủy quyền; TPKT hoặc người được ủy quyền; KTGS; giúp việc do TĐV quyết định; TK/TQ chính/TQ thành viên nếu cần. Kiểm bó/túi còn đúng niêm phong rồi mới cắt dây. Giữ giấy niêm phong đến khi kiểm xong bó/túi đó. Không để lẫn giấy niêm phong bó/túi này với bó/túi khác. Không sai sót: hủy ngay niêm phong cũ, dán niêm phong mới của người kiểm đếm, đóng gói tại đơn vị nhận.</td><td>Giấy niêm phong, QĐ HĐKĐ</td><td>—</td></tr>
+      <tr><td>B7–B10</td><td>Người kiểm đếm, HĐKĐ, chứng kiến</td><td>Phát hiện thừa, thiếu, lẫn loại hoặc tiền giả: báo ngay HĐKĐ và người chứng kiến (nếu có) để kiểm tra lại. Khi HĐ đã xác định đúng sai sót: ghi mặt sau tờ niêm phong: ngày tháng năm kiểm đếm; kết quả thừa hoặc thiếu (số tờ, miếng, thành tiền), kể cả lẫn loại hoặc tiền giả dẫn đến thừa/thiếu; ký xác nhận; yêu cầu người chứng kiến ký (nếu có); nộp HĐKĐ lập và ký xác nhận biên bản. Bên nhận gửi biên bản kèm niêm phong bó/túi có sai sót đã được HĐ xác nhận cho bên giao chịu trách nhiệm xử lý, thanh toán. Đơn vị không thực hiện đúng quy định NHNN và Agribank về giao nhận, kiểm đếm mà xảy ra thiệt hại phải chịu trách nhiệm trước pháp luật, HĐTV, TGĐ.</td><td>Biên bản HĐKĐ, tờ niêm phong gốc</td><td>Gửi bên giao ngay sau khi HĐ xác nhận</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== LUỒNG 9 ========== -->
+<section class="luong" id="luong-9">
+  <h2>Luồng 9 — Vào / ra kho tiền</h2>
+  <p class="meta">Điều 32, 33, 34, 35; S 06/TTKQ</p>
+  <div class="chips">
+    <span class="chip">Khi nào: mỗi lần mở cửa kho tiền</span>
+  </div>
+  <div class="box">
+    <h3>Ai được vào kho khi làm nhiệm vụ (Điều 32)</h3>
+    <ul>
+      <li>Thống đốc, Phó Thống đốc NHNN kiểm tra kho trong hệ thống Agribank</li>
+      <li>Cục trưởng Cục Phát hành và Kho quỹ; cán bộ được Thống đốc cho phép bằng văn bản</li>
+      <li>Giám đốc NHNN chi nhánh và cán bộ được GĐ NHNN CN cho phép bằng văn bản, cùng địa bàn</li>
+      <li>Chủ tịch HĐTV, Tổng Giám đốc; cán bộ/đoàn kiểm tra được Chủ tịch HĐTV, TGĐ, Trưởng Ban Kiểm soát cho phép bằng văn bản</li>
+      <li>TĐV và các thành viên có trách nhiệm giữ chìa khóa cửa kho tiền</li>
+      <li>Cán bộ kiểm tra, giám sát xuất/nhập; cán bộ kiểm tra kho theo kế hoạch đã được TĐV phê duyệt</li>
+      <li>Cán bộ, nhân viên được giao sắp xếp, vận chuyển tiền tài sản trong kho hoặc cứu tài sản khẩn cấp</li>
+      <li>Thành viên HĐKK định kỳ, đột xuất</li>
+      <li>Cán bộ giám sát và kỹ thuật, công nhân sửa chữa kho, thiết bị, khóa — có giấy đề nghị, TĐV chấp thuận</li>
+    </ul>
+  </div>
+  <div class="diagram">
+    <p class="caption">Sơ đồ Luồng 9</p>
+    <pre class="mermaid">
+flowchart TB
+  R1["1. Xác định người vào đúng danh sách<br/>và đúng trường hợp được vào kho"] --> R2{"2. Ngoài danh sách / ngoài trường hợp?"}
+  R2 -->|Có| R2b["2b. Phải có phép TĐV<br/>hoặc cấp thẩm quyền — không thì dừng"]
+  R2 -->|Không| R3["3. Đủ Ban quản lý kho tiền có mặt"]
+  R3 --> R4["4. Trước khi mở: quan sát ngoài<br/>khóa và cửa kho"]
+  R4 --> R5{"5. Hiện trạng cửa/khóa?"}
+  R5 -->|Nghi vấn| R5a["5a. Ghi đầy đủ nghi vấn<br/>trước khi mở khóa"]
+  R5 -->|Dấu hiệu xâm nhập| R5b["5b. Giữ nguyên hiện trường<br/>báo Công an, lập biên bản<br/>rồi mới mở"]
+  R5 -->|Bình thường| R6
+  R5a --> R6["6. Mở khóa từng người, thứ tự:<br/>Giám đốc → TPKT → Thủ kho"]
+  R5b --> R6
+  R6 --> R7["7. Vào: Thủ kho vào đầu tiên"]
+  R7 --> R8["8. Mọi người vào/ra ký S 06/TTKQ"]
+  R8 --> R9["9. Làm việc trong kho theo lý do vào"]
+  R9 --> R10["10. Trước khi ra: kiểm hiện vật mang ra<br/>kiểm thiết bị an toàn"]
+  R10 --> R11["11. Thủ kho kiểm lần cuối"]
+  R11 --> R12["12. Ra: Thủ kho ra cuối cùng"]
+  R12 --> R13["13. Đóng khóa từng người, thứ tự:<br/>Thủ kho → TPKT → Giám đốc"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>TPKT, Thủ kho</td><td>Đối chiếu người vào với Điều 32. Trường hợp được vào (Điều 33): lệnh xuất/nhập tiền tài sản; nhập bảo quản hoặc xuất sử dụng trong ngày; kiểm tra, kiểm kê định kỳ hoặc đột xuất; vệ sinh, sắp xếp, đảo kho; sửa chữa, bảo dưỡng, lắp đặt, kiểm tra trang thiết bị; cứu tiền tài sản khẩn cấp; xuất nhập tạm gửi kho NHNN CN, KBNN, TCTD khác cùng địa bàn hoặc chi nhánh khác Agribank; xuất nhập tài sản dịch vụ quản lý, bảo quản, cho thuê tủ két, dịch vụ ngân quỹ khác; trường hợp khác theo quyết định cấp có thẩm quyền.</td><td>Lệnh xuất nhập, giấy đề nghị, văn bản cho phép</td><td>—</td></tr>
+      <tr><td>2</td><td>TĐV</td><td>Người hoặc lý do không thuộc danh sách: chỉ vào khi được TĐV / cấp thẩm quyền cho phép. Không phép thì dừng.</td><td>Văn bản cho phép</td><td>—</td></tr>
+      <tr><td>3</td><td>Ban QL kho</td><td>Vào, ra phải đầy đủ thành phần Ban quản lý kho tiền. Trước khi vào và sau khi ra, các thành viên Ban QL kho phải có mặt đầy đủ để chứng kiến việc mở, đóng cửa của người giữ chìa, mã số. Người giữ chìa tự bảo vệ bí mật mã, chìa khi mở đóng.</td><td>—</td><td>Nhắc nếu thiếu người giữ chìa</td></tr>
+      <tr><td>4–5</td><td>Thành viên giữ chìa</td><td>Trước khi mở khóa: quan sát kỹ tình trạng bên ngoài khóa và cửa. Có dấu hiệu nghi vấn: ghi đầy đủ nghi vấn trước khi mở. Có dấu hiệu kẻ gian đã xâm nhập: giữ nguyên hiện trường, thông báo Công an, lập biên bản, sau đó mới mở khóa.</td><td>Ghi chú nghi vấn / biên bản hiện trường</td><td>SMS khẩn TĐV + BV nếu xâm nhập</td></tr>
+      <tr><td>6–7</td><td>GĐ, TPKT, Thủ kho</td><td>Mở từng người đúng thứ tự: Giám đốc, Trưởng phòng/bộ phận kế toán hoặc Tổ trưởng KT–NQ, Thủ kho tiền. Thủ kho vào đầu tiên.</td><td>—</td><td>—</td></tr>
+      <tr><td>8</td><td>Mọi đối tượng vào/ra</td><td>Ký tên xác nhận trên Sổ đăng ký vào, ra kho tiền S 06/TTKQ mỗi lần.</td><td>S 06/TTKQ</td><td>Nhắc nếu thiếu chữ ký</td></tr>
+      <tr><td>9</td><td>Người được phép</td><td>Chỉ làm đúng việc đã ghi lý do vào kho. Sửa chữa kỹ thuật: giấy đề nghị được TĐV chấp thuận, có giám sát.</td><td>Giấy đề nghị sửa chữa nếu có</td><td>—</td></tr>
+      <tr><td>10–13</td><td>Ban QL kho, Thủ kho</td><td>Trước khi ra: kiểm hiện vật mang ra ngoài kho; kiểm lại hệ thống thiết bị an toàn. Thủ kho kiểm lần cuối cùng trước khi đóng cửa. Thủ kho ra cuối cùng. Đóng khóa thứ tự ngược: Thủ kho, TPKT/Tổ trưởng KT–NQ, Giám đốc.</td><td>S 06/TTKQ</td><td>—</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== LUỒNG 10 ========== -->
+<section class="luong" id="luong-10">
+  <h2>Luồng 10 — Vận chuyển hàng đặc biệt / điều chuyển quỹ</h2>
+  <p class="meta">Điều 40–51; mẫu 03, 04, 13, 14, 15/TTKQ</p>
+  <div class="chips">
+    <span class="chip">Khi nào: điều chuyển tiền, tài sản quý, GTCG, ACQT giữa đơn vị hoặc với NHNN/KBNN/TCTD</span>
+  </div>
+  <div class="box">
+    <h3>Ai tham gia</h3>
+    <ul>
+      <li>Người ký lệnh (TGĐ / GĐ CN loại I / GĐ CN đầu mối — tùy tình huống dưới đây)</li>
+      <li>Người áp tải, bảo vệ, người điều khiển phương tiện; Thủ kho hai đầu; đơn vị tiếp nhận</li>
+    </ul>
+  </div>
+  <div class="diagram">
+    <p class="caption">Sơ đồ A — chuỗi vận chuyển bắt buộc</p>
+    <pre class="mermaid">
+flowchart TB
+  S1["1. Tạo việc: loại hàng, số lượng,<br/>niêm phong, điểm đi, điểm đến, giờ ETA"] --> S2["2. Đủ lệnh điều chuyển<br/>và giấy ủy quyền áp tải nếu có"]
+  S2 --> S3["3. Phân công áp tải, BV, lái xe, xe đạt chuẩn"]
+  S3 --> S4["4. Nhận hàng, đóng gói, niêm phong"]
+  S4 --> S5["5. Xếp lên phương tiện; kiểm tra xe"]
+  S5 --> S6["6. Xuất phát; ghi sổ vận chuyển"]
+  S6 --> S7["7. Trên đường: bảo mật tuyến,<br/>bảo vệ, an toàn"]
+  S7 --> S8["8. Đến nơi: tổ chức tiếp nhận"]
+  S8 --> S9["9. Kiểm niêm phong, giao nhận,<br/>nhập kho/quỹ bên nhận"]
+  S9 --> S10["10. Đủ thủ tục hai bên mới kết thúc"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>TPKT, TĐV</td><td>Lập việc điều chuyển: loại hàng đặc biệt, số lượng, tình trạng niêm phong, điểm đi–đến, giờ dự kiến đến.</td><td>Giấy đề nghị tiếp/nộp quỹ nếu có</td><td>—</td></tr>
+      <tr><td>2</td><td>Người có thẩm quyền ký lệnh — xem bảng tình huống dưới</td><td>Ban hành đủ lệnh. Chưa đủ lệnh thì không xuất phát.</td><td>Mẫu 03, 04, 13, 14, 15 tùy tình huống</td><td>—</td></tr>
+      <tr><td>3</td><td>TĐV đơn vị vận chuyển</td><td>Phân công lực lượng áp tải, bảo vệ, lái xe; phương tiện đạt chuẩn NHNN/Agribank. Ủy quyền cho tổ trưởng là người áp tải chịu trách nhiệm chính cùng những người được nêu trong lệnh về bảo quản, áp tải, vận chuyển, bảo đảm tuyệt đối an toàn, bí mật.</td><td>Mẫu 03 (ủy quyền áp tải)</td><td>Nhắc thiếu người trên danh sách</td></tr>
+      <tr><td>4</td><td>Thủ kho bên giao</td><td>Nhận, đóng gói, niêm phong hàng đặc biệt đúng quy định.</td><td>Niêm phong, biên bản</td><td>—</td></tr>
+      <tr><td>5</td><td>Áp tải, lái xe</td><td>Xếp lên thùng xe chở tiền; kiểm tra kỹ thuật xe, thùng xe.</td><td>—</td><td>—</td></tr>
+      <tr><td>6</td><td>Tổ vận chuyển</td><td>Xuất phát; ghi sổ sách theo dõi vận chuyển.</td><td>Sổ theo dõi vận chuyển</td><td>Nhắc lệnh đã duyệt mà chưa xuất phát</td></tr>
+      <tr><td>7</td><td>Áp tải, BV, lái xe</td><td>Bảo mật thông tin vận chuyển; bảo đảm an toàn trên đường; phối hợp bảo vệ trên tuyến; người điều khiển phương tiện tuân thủ trách nhiệm Điều 50.</td><td>—</td><td>Nhắc quá ETA 15/30 phút</td></tr>
+      <tr><td>8–9</td><td>Đơn vị nhận, Thủ kho nhận</td><td>Tổ chức tiếp nhận: kiểm tình trạng nguyên niêm phong, giao nhận, nhập kho/quỹ. Nếu nhận bó/túi nguyên niêm phong và chọn kiểm sau: thỏa thuận ngày kiểm tối đa 5 ngày LV, thành lập HĐKĐ, bên giao cử chứng kiến hoặc văn bản không cử; PGD nhận từ CN phải kiểm đếm ngay.</td><td>Biên bản giao nhận, S 06 nếu nhập kho</td><td>—</td></tr>
+      <tr><td>10</td><td>Hai bên</td><td>Đủ thủ tục giao nhận mới kết thúc. Lệch/mất: lập biên bản; TĐV quyết định kiểm kê tài sản liên quan. Có dấu hiệu cướp, đột nhập: giữ hiện trường, báo Công an, báo khẩn chi nhánh cấp trên và Trụ sở chính.</td><td>Biên bản hoàn thành / sự cố</td><td>SMS khẩn nếu sự cố</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="nhanh">Bảng tình huống — ai ký lệnh, mẫu nào</h3>
+  <table class="steps">
+    <thead><tr><th>#</th><th>Tình huống</th><th>Người làm / người ký</th><th>Việc làm</th><th>Chứng từ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Điều chuyển tiền, tài sản quý, GTCG, ACQT giữa các chi nhánh loại I trong hệ thống</td><td>Tổng Giám đốc</td><td>Ký Lệnh điều chuyển vốn thanh toán. Trừ điều chuyển tiền mặt VND giữa CN loại I với chi nhánh đầu mối: Giám đốc chi nhánh đầu mối ký lệnh theo quyết định hiện hành của TGĐ.</td><td>Mẫu 04/TTKQ</td><td>Trước khi xe chạy</td></tr>
+      <tr><td>2</td><td>Nộp, lĩnh, giao, nhận với Sở GD NHNN, NHNN khu vực, NHNN chi nhánh, KBNN, TCTD khác cùng tỉnh</td><td>Giám đốc chi nhánh loại I</td><td>Trực tiếp ký Lệnh điều chuyển.</td><td>Mẫu 03/TTKQ</td><td>—</td></tr>
+      <tr><td>3</td><td>Điều chuyển giữa các CN loại II trong cùng CN loại I</td><td>CN nhận lập đề nghị; CN loại I cân đối; đơn vị trực tiếp vận chuyển lập lệnh đường</td><td>Căn cứ Giấy đề nghị tiếp quỹ của đơn vị nhận và khả năng cung ứng của đơn vị điều chuyển, CN loại I lập Lệnh ĐC vốn TT gửi hai bên; đơn vị nào trực tiếp vận chuyển thì lập Lệnh điều chuyển.</td><td>Mẫu 13/TTKQ → mẫu 04/TTKQ → mẫu 03/TTKQ</td><td>—</td></tr>
+      <tr><td>4</td><td>CN loại I tiếp quỹ cho CN loại II</td><td>CN II đề nghị; CN I phê duyệt; đơn vị vận chuyển lập lệnh</td><td>Căn cứ mẫu 13, CN I phê duyệt và gửi văn bản phê duyệt tiếp quỹ tiền mặt, ngoại tệ (qua fax hoặc đường nội bộ). Căn cứ văn bản phê duyệt, chi nhánh trực tiếp vận chuyển lập lệnh và tổ chức vận chuyển.</td><td>Mẫu 13 → mẫu 15/TTKQ → mẫu 03</td><td>—</td></tr>
+      <tr><td>5</td><td>CN loại II nộp quỹ về CN loại I</td><td>CN II đề nghị; đơn vị trực tiếp vận chuyển lập lệnh</td><td>Căn cứ Giấy đề nghị nộp quỹ, đơn vị trực tiếp vận chuyển lập Lệnh điều chuyển và tổ chức vận chuyển.</td><td>Mẫu 14/TTKQ → mẫu 03</td><td>—</td></tr>
+      <tr><td>6</td><td>CN loại I/II với Phòng giao dịch</td><td>PGD đề nghị; chi nhánh lập lệnh</td><td>Căn cứ Giấy đề nghị tiếp quỹ/nộp quỹ của PGD, chi nhánh lập Lệnh điều chuyển và tổ chức vận chuyển.</td><td>Đề nghị PGD → mẫu 03</td><td>—</td></tr>
+      <tr><td>7</td><td>Ngoại tệ tiền mặt chi nhánh đầu mối được TGĐ ủy quyền mở TK thanh toán biên mậu, khu vực biên giới</td><td>Giám đốc chi nhánh đầu mối</td><td>Ký Lệnh điều chuyển kiêm giấy ủy quyền áp tải hàng đặc biệt.</td><td>Mẫu 03/TTKQ</td><td>—</td></tr>
+      <tr><td>8</td><td>Mua bán ngoại tệ với đối tác nước ngoài không gồm nước chung biên giới; điều chuyển với đơn vị đầu mối ngân quỹ / đầu mối khu vực</td><td>Theo quy định riêng Tổng Giám đốc từng thời kỳ</td><td>Thực hiện đúng văn bản riêng, không tự lập lệnh khác mẫu nếu văn bản riêng quy định khác.</td><td>Theo QĐ TGĐ</td><td>—</td></tr>
+      <tr><td>9</td><td>Thu/chi tại địa chỉ KH trong nội bộ chi nhánh</td><td>Giám đốc chi nhánh</td><td>Ký lệnh; tổ chức vận chuyển như chuỗi A.</td><td>Mẫu 03/TTKQ</td><td>—</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== LUỒNG 11 ========== -->
+<section class="luong" id="luong-11">
+  <h2>Luồng 11 — Xử lý thừa / thiếu tiền mặt, tài sản</h2>
+  <p class="meta">Điều 56, 57, 58, 59</p>
+  <div class="chips">
+    <span class="chip">Khi nào: phát hiện thừa hoặc thiếu khi kiểm đếm, đóng gói, trong kho, quầy, trên đường vận chuyển</span>
+  </div>
+  <div class="box">
+    <h3>Ai tham gia</h3>
+    <ul>
+      <li>Người phát hiện; TĐV; TPKT; KTGS; người có tên trên niêm phong; HĐKK/HĐKĐ</li>
+      <li>Trụ sở chính (Ban Tài chính Kế toán), NHNN chi nhánh khi đủ ngưỡng báo cáo</li>
+    </ul>
+  </div>
+  <div class="diagram">
+    <p class="caption">Sơ đồ A — phát hiện và phân nhánh</p>
+    <pre class="mermaid">
+flowchart TB
+  T1["1. Phát hiện thừa hoặc thiếu"] --> T2["2. Dừng hiện trạng liên quan"]
+  T2 --> T3["3. TĐV quyết định kiểm kê<br/>toàn bộ tài sản liên quan"]
+  T3 --> T4["4. TĐV, TPKT, KTGS trực tiếp<br/>xem xét, lập biên bản, ghi sổ"]
+  T4 --> T5{"5. Phân loại nguyên nhân / chỗ phát hiện"}
+  T5 --> T6["6a. Thiếu khi kiểm đếm/đóng gói<br/>tên trên niêm phong"]
+  T5 --> T7["6b. Thừa/thiếu theo lệnh điều chuyển<br/>TGĐ hoặc GĐ CN"]
+  T5 --> T8["6c. Thừa trong kho, quầy, trên đường"]
+  T5 --> T9["6d. Thiếu do sai nghiệp vụ"]
+  T5 --> T10["6e. Thiếu do chủ quan / tham ô"]
+  T5 --> T11["6f. Mất có dấu hiệu cướp, đột nhập"]
+    </pre>
+  </div>
+  <div class="diagram">
+    <p class="caption">Sơ đồ B — xử lý từng nhánh và báo cáo</p>
+    <pre class="mermaid">
+flowchart TB
+  U1["6a. Người tên trên niêm phong<br/>bồi 100% giá trị thiếu<br/>tái phạm: kỷ luật"] --> U7["7. Hạch toán / thu hồi / hoàn trả"]
+  U2["6b. Đơn vị nhận hạch toán ngay<br/>TK điều chuyển vốn nội bộ<br/>gửi biên bản + niêm phong cho bên giao<br/>bên giao: người tên niêm phong bồi 100%"] --> U7
+  U3["6c. Thừa đã rõ nguyên nhân:<br/>hoàn trả KH trong ngày<br/>không được thì TK thừa quỹ theo dõi"] --> U7
+  U4["6c. Thừa chưa rõ: TK thừa quỹ theo dõi<br/>sau 6 tháng vẫn chưa rõ, không có phản ánh KH:<br/>thành lập Hội đồng xử lý thừa quỹ"] --> U7
+  U5["6d. Biên bản quy trách nhiệm cá nhân<br/>bồi toàn bộ thiệt hại"] --> U7
+  U6["6e. Kỷ luật TĐV/người quản lý nếu liên đới<br/>cán bộ kho quỹ tham ô: bồi 100%<br/>và buộc thôi việc hoặc TNHS"] --> U7
+  U8["6f. Giữ hiện trường, Công an,<br/>báo khẩn CN cấp trên và TSC"] --> U9{"8. Ngưỡng báo cáo 24 giờ?"}
+  U7 --> U9
+  U9 -->|Tiền/tài sản quý từ 50 triệu| U10["9. Báo TSC Ban TCKT<br/>và NHNN chi nhánh trong 24 giờ"]
+  U9 -->|GTCG / ACQT thiếu mất| U11["10. Đăng ký mất từng seri IPCAS ngay<br/>báo TSC qua đơn vị đầu mối<br/>thông báo NHNN CN nếu nhận từ NHNN<br/>và TCTD toàn quốc trong 24 giờ"]
+  U9 -->|Dưới ngưỡng, không GTCG| U12["11. Xử lý nội bộ, đóng hồ sơ khi thu hồi xong"]
+  U10 --> U12
+  U11 --> U12
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1–2</td><td>Người phát hiện</td><td>Báo ngay TĐV, TPKT. Không xáo trộn hiện vật, niêm phong, camera, tuyến xe liên quan.</td><td>Báo cáo nhanh</td><td>Ngay. Nhắc việc mở &gt; 2 giờ chưa có biên bản</td></tr>
+      <tr><td>3–4</td><td>TĐV, TPKT, KTGS</td><td>TĐV quyết định kiểm kê toàn bộ tài sản liên quan. Ba bên trực tiếp xem xét, kiểm tra, lập biên bản, ghi sổ, truy cứu trách nhiệm cá nhân người được giao bảo quản và người liên quan, kịp thời thu hồi toàn bộ giá trị thiếu, mất.</td><td>QĐ kiểm kê, biên bản</td><td>Trong buổi phát hiện</td></tr>
+      <tr><td>6a</td><td>Người có tên trên niêm phong</td><td>Thiếu tiền, tài sản quý, GTCG, ACQT theo biên bản HĐKK/HĐKĐ khi kiểm đếm, đóng gói: người có tên trên niêm phong bó, túi, hộp, bao, thùng bồi thường 100% giá trị thiếu. Tái phạm: tùy mức độ, bị kỷ luật theo pháp luật, NHNN, Agribank. Thừa: sau khi nhận được báo có số tiền thừa của đơn vị nhận, xử lý như 6c.</td><td>Biên bản HĐ, niêm phong gốc</td><td>—</td></tr>
+      <tr><td>6b</td><td>Đơn vị nhận và đơn vị giao</td><td>Giao nhận theo lệnh điều chuyển của TGĐ hoặc GĐ CN: tại đơn vị nhận được phép hạch toán ngay vào tài khoản điều chuyển vốn nội bộ, căn cứ biên bản HĐKĐ kèm niêm phong gửi đơn vị giao. Tại đơn vị giao: căn cứ báo có/báo nợ, biên bản HĐKĐ bên nhận kèm niêm phong người có tên trên bó/túi sai sót — người đó bồi 100% nếu thiếu. PGD có mã cân đối riêng: cùng cách này. PGD hoạt động trong cùng cân đối chi nhánh quản lý (mô hình Teller kéo dài): xử lý như tại đơn vị giao ở trên.</td><td>Lệnh ĐC, biên bản HĐKĐ, hạch toán IPCAS</td><td>—</td></tr>
+      <tr><td>6c</td><td>TĐV, TPKT, HĐ xử lý thừa quỹ</td><td>Thừa đã xác định nguyên nhân: căn cứ biên bản đủ chữ ký và chứng từ liên quan, hoàn trả khách hàng. Không hoàn trả được trong ngày: hạch toán tài khoản thừa quỹ, tài sản thừa chờ xử lý để theo dõi, hoàn khi khách đến giao dịch. Thừa chưa xác định nguyên nhân: hạch toán tài khoản thừa quỹ chờ xử lý. Sau thời gian 06 tháng nếu vẫn chưa xác định được nguyên nhân, không có phản ánh của khách hàng: đơn vị thành lập Hội đồng xử lý thừa quỹ gồm TĐV, TPKT, KTGS và thành phần khác do TĐV quyết định để xử lý các khoản thừa quỹ nghiệp vụ.</td><td>Biên bản, chứng từ TK thừa quỹ, QĐ HĐ xử lý thừa quỹ</td><td>Nhắc khi thừa quỹ gần đủ 6 tháng</td></tr>
+      <tr><td>6d</td><td>Cá nhân được xác định trong biên bản</td><td>Thiếu, mất do sơ xuất trong giao nhận, kiểm đếm, bảo quản: lập biên bản quy trách nhiệm cá nhân; cá nhân bồi thường toàn bộ thiệt hại và bị xử lý theo pháp luật, NHNN, Agribank.</td><td>Biên bản quy trách nhiệm</td><td>—</td></tr>
+      <tr><td>6e</td><td>TĐV, người quản lý/giám sát, cán bộ kho quỹ</td><td>TĐV và người có trách nhiệm quản lý, giám sát, bảo quản an toàn nếu không hoàn thành nhiệm vụ để xảy ra thiếu mất, hoặc để cán bộ thuộc quyền tham ô, lợi dụng, lấy cắp: bị xử lý kỷ luật; nếu liên đới trách nhiệm vật chất thì bồi thường hoặc chịu trách nhiệm theo pháp luật. Cán bộ, nhân viên kho quỹ tham ô, lợi dụng, lấy cắp: bồi 100% giá trị và buộc thôi việc hoặc chịu trách nhiệm theo pháp luật.</td><td>Hồ sơ kỷ luật, biên bản</td><td>—</td></tr>
+      <tr><td>6f</td><td>TĐV, BV, Công an</td><td>Mất có dấu hiệu kẻ gian đột nhập, cướp; tham ô lợi dụng có dấu hiệu cấu thành tội phạm: giữ nguyên hiện trường, báo Công an, báo khẩn chi nhánh cấp trên và Trụ sở chính.</td><td>Biên bản hiện trường</td><td>Ngay</td></tr>
+      <tr><td>8–11</td><td>TĐV, TPKT</td><td>Thiếu/mất tiền mặt, tài sản quý từ 50.000.000 đồng trở lên: báo cáo ngay Trụ sở chính (qua Ban Tài chính Kế toán) và NHNN chi nhánh trong 24 giờ kể từ thời điểm phát hiện. Thiếu/mất GTCG, ACQT: đăng ký tình trạng mất từng seri trên IPCAS ngay; đồng thời báo TSC qua đơn vị đầu mối; thông báo NHNN chi nhánh (nếu GTCG nhận từ NHNN) và các TCTD khác trên toàn quốc trong 24 giờ. Dưới ngưỡng: xử lý nội bộ, đóng hồ sơ khi thu hồi/hạch toán xong.</td><td>Công văn báo cáo, IPCAS seri</td><td>Nhắc cận 24 giờ chưa gửi TSC/NHNN</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== LUỒNG 12 ========== -->
+<section class="luong" id="luong-12">
+  <h2>Luồng 12 — Sự cố chìa khóa, két, mở kho khẩn cấp</h2>
+  <p class="meta">Điều 24–31, Điều 25, Phụ lục V</p>
+  <div class="chips">
+    <span class="chip">Khi nào: đổi người giữ chìa, mất/lộ chìa hoặc mã, hỏng khóa, mở hộp chìa dự phòng, thiên tai hỏa hoạn</span>
+  </div>
+  <div class="box">
+    <h3>Ai tham gia</h3>
+    <ul>
+      <li>Người được giao giữ chìa; TĐV; TPKT; Thủ kho; KTGS; thợ sửa khóa do TĐV chọn</li>
+      <li>Ba thành viên giữ chìa/mã khi mở hộp dự phòng hoặc đổi mã</li>
+    </ul>
+  </div>
+
+  <h3 class="nhanh" style="margin-top:0">12A. Đổi người giữ chìa (không gắn hồ sơ nghỉ hay ủy quyền — chỉ đổi chìa)</h3>
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart TB
+  V1["1. Có quyết định/văn bản đổi<br/>thành viên giữ chìa"] --> V2["2. TĐV ký QĐ HĐKK — kiểm kê đột xuất<br/>vì thay đổi người giữ chìa"]
+  V2 --> V3["3. HĐKK kiểm kê tiền, tài sản<br/>khớp sổ và IPCAS"]
+  V3 --> V4["4. Người giao và người nhận ký S 08/TTKQ"]
+  V4 --> V5{"5. Khóa mã số?"}
+  V5 -->|Có| V6["6. Đủ 3 người giữ chìa có mặt<br/>mở cửa kho<br/>người giao xóa mã, giao chìa định vị<br/>người nhận cài mã mình"]
+  V5 -->|Không| V7["7. Ký biên bản, người mới giữ chìa hàng ngày"]
+  V6 --> V7
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>TĐV</td><td>Có quyết định hoặc văn bản thay đổi một trong các thành viên giữ chìa cửa kho / két ATM / két 3 khóa.</td><td>QĐ/văn bản</td><td>Trước khi giao chìa</td></tr>
+      <tr><td>2–3</td><td>TĐV, HĐKK</td><td>Thành lập HĐKK, kiểm kê đột xuất tiền tài sản (thay đổi thành viên giữ chìa là trường hợp kiểm kê đột xuất). Bên bảo quản xuất trình, không trực tiếp đếm. Khớp sổ kho quỹ và IPCAS; lệch thì biên bản thừa/thiếu.</td><td>QĐ HĐKK, biên bản kiểm kê</td><td>Cùng buổi đổi chìa</td></tr>
+      <tr><td>4</td><td>Người giao, người nhận</td><td>Ký Sổ theo dõi bàn giao chìa khóa sử dụng hàng ngày S 08/TTKQ. Bàn giao chìa két ATM, két 3 khóa làm như bàn giao chìa cửa kho.</td><td>S 08/TTKQ</td><td>—</td></tr>
+      <tr><td>5–6</td><td>Ba thành viên giữ chìa</td><td>Khóa mã số: cả ba có mặt, mở cửa kho. Người giao xóa mã, giao chìa định vị. Người nhận cài mã của mình. Cấm dùng mã xuất xưởng hoặc mã người giao.</td><td>S 08/TTKQ</td><td>—</td></tr>
+      <tr><td>7</td><td>Người nhận chìa</td><td>Quản lý, niêm phong, bảo quản chìa hàng ngày và chìa dự phòng theo Phụ lục V. Không cho người khác xem, cầm, cất hộ. Không mang chìa ra ngoài trụ sở. Chìa két ATM, chìa thùng xe chở tiền dùng xong phải mang về bảo quản tại trụ sở.</td><td>Phụ lục V, S 08</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="nhanh">12B. Mất hoặc lộ chìa / mã số</h3>
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart TB
+  W1["1. Phát hiện mất hoặc lộ chìa/mã"] --> W2["2. Báo ngay TĐV — không tự sao chìa"]
+  W2 --> W3["3. TĐV chỉ đạo thay khóa mới<br/>và/hoặc mã số mới"]
+  W3 --> W4["4. Kiểm kê đột xuất: QĐ HĐKK,<br/>đếm hiện vật, khớp sổ và IPCAS"]
+  W4 --> W5["5. Truy trách nhiệm người được giao chìa"]
+  W5 --> W6["6. Cài mã/chìa mới, bàn giao S 08<br/>đủ 3 người nếu khóa mã"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1–2</td><td>Người giữ chìa</td><td>Báo ngay TĐV. Nghiêm cấm làm thêm hoặc sao chép chìa cửa kho, gian kho, gian đếm, két sắt, két ATM, thùng xe chở tiền.</td><td>Báo cáo</td><td>SMS khẩn TĐV, TPKT, TK</td></tr>
+      <tr><td>3</td><td>TĐV</td><td>Chịu trách nhiệm cho thay thế ổ khóa, mã số mới theo quy định. Khi bị lộ bí mật chìa phải thay khóa mới hoặc/và mã số mới.</td><td>Văn bản cho phép thay khóa</td><td>—</td></tr>
+      <tr><td>4</td><td>HĐKK</td><td>Kiểm kê đột xuất vì mất chìa: thành lập HĐKK, xuất trình hiện vật, không để bên bảo quản tự đếm, khớp IPCAS.</td><td>QĐ HĐKK, biên bản</td><td>Ngay</td></tr>
+      <tr><td>5</td><td>TĐV, KTGS</td><td>Người được giao chìa chịu trách nhiệm không để mất, thất lạc, hư hỏng, không đưa cho người khác.</td><td>Biên bản trách nhiệm</td><td>—</td></tr>
+      <tr><td>6</td><td>Ba người giữ chìa</td><td>Cài khóa/mã mới, ký S 08. Khóa mã: đủ 3 người, xóa mã cũ, cài mã người nhận.</td><td>S 08/TTKQ</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="nhanh">12C. Hỏng khóa, sửa chữa, thay thế</h3>
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart TB
+  X1["1. Phát hiện khóa/chìa hỏng"] --> X2["2. Văn bản báo cáo TĐV"]
+  X2 --> X3["3. TĐV chấp thuận, chọn thợ<br/>TĐV chịu trách nhiệm lựa chọn"]
+  X3 --> X4["4. Người giữ chìa hoặc người được ủy quyền<br/>chứng kiến suốt quá trình sửa"]
+  X4 --> X5["5. Lập biên bản sửa chữa / thay khóa"]
+  X5 --> X6["6. Két ATM: qua đơn vị cung cấp ATM<br/>hoặc đơn vị bảo trì ATM"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1–3</td><td>Người giữ chìa, TĐV</td><td>Khóa hoặc chìa hỏng cần sửa, thay: văn bản báo cáo, được TĐV chấp thuận. TĐV chịu trách nhiệm khi quyết định chọn đối tác (thợ) sửa chữa, thay thế.</td><td>Báo cáo, chấp thuận</td><td>Trước khi thợ vào kho</td></tr>
+      <tr><td>4–5</td><td>Người giữ chìa / người ủy quyền, KTGS, thợ</td><td>Sửa, thay phải có chứng kiến người giữ chìa hoặc người được ủy quyền; lập biên bản khi sửa chữa, thay thế khóa cửa kho, gian kho, gian đếm, két sắt, két ATM, thùng xe chở tiền. Thợ vào kho: giấy đề nghị, TĐV chấp thuận, đúng đối tượng vào kho.</td><td>Biên bản sửa khóa, S 06</td><td>—</td></tr>
+      <tr><td>6</td><td>Ban QL ATM</td><td>Sửa chữa thay thế chìa khóa két ATM thực hiện thông qua đơn vị cung cấp ATM hoặc đơn vị cung cấp dịch vụ bảo trì ATM.</td><td>Biên bản với nhà cung cấp</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="nhanh">12D. Mở hộp chìa khóa dự phòng</h3>
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart TB
+  Y1{"1. Lý do mở hộp dự phòng?"} --> Y2["Mất chìa đang dùng hàng ngày<br/>hoặc cần mở cửa kho khẩn cấp"]
+  Y1 --> Y3["Lưu chìa dự phòng khóa mới,<br/>đổi mã, đổi người quản lý"]
+  Y1 --> Y4["Rút chìa dự phòng khóa đã thay mới"]
+  Y1 --> Y5["Kiểm tra, kiểm kê chìa/mã dự phòng<br/>theo lệnh văn bản TĐV"]
+  Y2 --> Y6["2. Văn bản đề nghị nhận lại chìa/mã<br/>TĐV chấp thuận"]
+  Y3 --> Y6
+  Y4 --> Y6
+  Y5 --> Y6
+  Y6 --> Y7{"3. Hộp gửi tại đơn vị khác?"}
+  Y7 -->|Có| Y8["4. TĐV đề nghị đơn vị nhận gửi<br/>ký lệnh ĐC kiêm ủy quyền áp tải mẫu 03<br/>1 trong 2 người giữ chìa đi cùng người còn lại<br/>hai bên chứng kiến niêm phong hộp"]
+  Y7 -->|Không| Y9["5. TĐV chỉ định 1 trong 3 người giữ chìa/mã<br/>mở hộp; KTGS và các thành viên giữ chìa chứng kiến"]
+  Y8 --> Y9
+  Y9 --> Y10["6. Khẩn cấp vắng người giữ chìa hộp:<br/>người được ủy quyền hoặc người thay thế chứng kiến"]
+  Y10 --> Y11["7. Giao nhận chìa/mã, niêm phong lại hộp"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>TĐV, người giữ chìa</td><td>Chỉ mở hộp khi: mất chìa đang dùng hàng ngày hoặc cần mở cửa kho trong trường hợp khẩn cấp; lưu giữ thêm chìa dự phòng của khóa mới, thay mã khác, hoặc thay đổi người quản lý giữ chìa; rút chìa dự phòng của khóa đã được thay mới; kiểm tra, kiểm kê chìa khóa, mã số dự phòng theo lệnh bằng văn bản của TĐV hoặc cấp có thẩm quyền.</td><td>Lệnh / đề nghị</td><td>—</td></tr>
+      <tr><td>2</td><td>Người đề nghị, TĐV</td><td>Mỗi lần cần mở: văn bản đề nghị nhận lại chìa khóa, mã số dự phòng được TĐV chấp thuận. Đối với hộp chìa dự phòng cửa kho tiền, TĐV phải có văn bản đề nghị Trưởng đơn vị nhận gửi chấp thuận.</td><td>Văn bản đề nghị, chấp thuận</td><td>—</td></tr>
+      <tr><td>3–4</td><td>TĐV, người áp tải</td><td>Nếu hộp gửi nơi khác: TĐV ký Lệnh điều chuyển kiêm giấy ủy quyền áp tải hàng đặc biệt mẫu 03/TTKQ, ủy quyền cho 01 trong 02 thành viên tham gia giữ chìa cửa kho cùng với thành viên còn lại trực tiếp đến đơn vị nhận gửi để nhận lại hộp. Khi giao nhận, hai bên cùng xem xét, chứng kiến tình trạng nguyên niêm phong của hộp đã gửi; làm thủ tục giao nhận và tổ chức vận chuyển về theo quy định vận chuyển hàng đặc biệt.</td><td>Mẫu 03/TTKQ, biên bản giao nhận hộp</td><td>—</td></tr>
+      <tr><td>5–6</td><td>TĐV, 3 người giữ chìa/mã, KTGS</td><td>Khi mở hộp chìa dự phòng cửa kho / két 3 khóa / két ATM phải có sự chứng kiến của các thành viên giữ chìa/mã số và cán bộ kiểm tra, giám sát. TĐV chỉ định 01 trong 03 thành viên giữ chìa/mã mở hộp. Khẩn cấp phải mở mà người giữ chìa cửa hộp vắng mặt: TĐV chỉ định người được ủy quyền hoặc người thay thế của người đó chứng kiến việc mở hộp.</td><td>Biên bản mở hộp</td><td>—</td></tr>
+      <tr><td>7</td><td>Thành viên giữ chìa</td><td>Giao nhận chìa/mã sử dụng; niêm phong lại hộp dự phòng theo Phụ lục V.</td><td>Niêm phong hộp, S 08 nếu giao chìa dùng hàng ngày</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="nhanh">12E. Khẩn cấp thiên tai, hỏa hoạn — cứu tài sản</h3>
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart TB
+  Z1["1. Xảy ra thiên tai, hỏa hoạn<br/>hoặc tình huống khẩn cấp"] --> Z2{"2. Đủ thành viên giữ chìa?"}
+  Z2 -->|Thiếu người| Z3["3. TĐV cho phép dùng chìa dự phòng<br/>HOẶC quyết định phá khóa cứu tiền, tài sản"]
+  Z2 -->|Đủ| Z4["4. Mở kho theo thứ tự chìa<br/>cứu tài sản"]
+  Z3 --> Z5["5. Cán bộ được giao cứu tài sản<br/>được vào kho"]
+  Z4 --> Z5
+  Z5 --> Z6["6. Báo cáo kịp thời chi nhánh cấp trên<br/>và Tổng Giám đốc"]
+  Z6 --> Z7["7. Sau sự cố: kiểm kê đột xuất,<br/>lập biên bản, thay khóa nếu đã phá"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1–3</td><td>TĐV</td><td>Khẩn cấp (thiên tai, hỏa hoạn…) nếu thiếu thành viên giữ chìa khóa: TĐV cho phép sử dụng chìa khóa dự phòng hoặc quyết định cho phá khóa để cứu tiền mặt, tài sản.</td><td>Lệnh khẩn của TĐV</td><td>SMS khẩn ngay</td></tr>
+      <tr><td>4–5</td><td>Ban QL kho, cán bộ được giao cứu tài sản</td><td>Người được giao nhiệm vụ vào kho để cứu tiền, tài sản trong trường hợp khẩn cấp thuộc đối tượng được vào kho. Ưu tiên cứu người và tài sản.</td><td>S 06 nếu ghi được</td><td>—</td></tr>
+      <tr><td>6</td><td>TĐV</td><td>Báo cáo kịp thời chi nhánh cấp trên và Tổng Giám đốc.</td><td>Báo cáo khẩn</td><td>Ngay sau khi kiểm soát được tình huống</td></tr>
+      <tr><td>7</td><td>HĐKK, TĐV</td><td>Sau sự cố: kiểm kê đột xuất toàn bộ tài sản liên quan, lập biên bản; nếu đã phá khóa thì thay khóa/mã mới, bàn giao S 08.</td><td>Biên bản kiểm kê, S 08</td><td>—</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== LUỒNG 13 ========== -->
+<section class="luong" id="luong-13">
+  <h2>Luồng 13 — Làm việc ngoài giờ và nội quy kho tiền, quầy giao dịch</h2>
+  <p class="meta">Điều 36, 37, 38, 39</p>
+  <div class="chips">
+    <span class="chip">Khi nào: làm việc ngoài giờ tại trụ sở kèm kho tiền; canh gác ngày thường, nghỉ, Lễ, Tết, giờ nghỉ trưa</span>
+  </div>
+  <div class="box">
+    <h3>Ai tham gia</h3>
+    <ul>
+      <li>Người đề nghị làm ngoài giờ; TĐV phê duyệt</li>
+      <li>Ban QL kho nếu phải mở kho; bảo vệ; TPKT giám sát nội quy</li>
+    </ul>
+  </div>
+  <div class="diagram">
+    <p class="caption">Sơ đồ Luồng 13</p>
+    <pre class="mermaid">
+flowchart TB
+  AA1["1. Lập đề nghị làm ngoài giờ<br/>lý do, thành phần, thời gian"] --> AA2["2. TĐV phê duyệt"]
+  AA2 --> AA3["3. Bố trí canh gác, bảo vệ<br/>kết hợp bảo vệ trụ sở"]
+  AA3 --> AA4{"4. Có vào kho tiền?"}
+  AA4 -->|Có| AA5["5. Đủ Ban QL kho<br/>soi cửa, mở GĐ→TPKT→TK<br/>Thủ kho vào đầu; ký S 06"]
+  AA4 -->|Không| AA6["6. Làm việc tại quầy/trụ sở<br/>tuân thủ nội quy quầy tiền mặt"]
+  AA5 --> AA7["7. Kết thúc ca: Thủ kho kiểm lần cuối<br/>đóng khóa TK→TPKT→GĐ<br/>Thủ kho ra cuối, ký S 06"]
+  AA6 --> AA8["8. Bàn giao bảo vệ; ghi rõ trách nhiệm<br/>bảo vệ tiền, tài sản giờ nghỉ trưa / đêm"]
+  AA7 --> AA8
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Trưởng bộ phận đề nghị</td><td>Đề nghị làm việc ngoài giờ tại trụ sở kèm kho tiền: lý do, thành phần, thời gian bắt đầu–kết thúc.</td><td>Giấy đề nghị ngoài giờ</td><td>Trước giờ dự kiến</td></tr>
+      <tr><td>2</td><td>TĐV</td><td>Phê duyệt hoặc từ chối. Không phê duyệt thì không được mở kho ngoài giờ.</td><td>Phê duyệt trên giấy đề nghị</td><td>—</td></tr>
+      <tr><td>3</td><td>TĐV, lực lượng bảo vệ</td><td>Bố trí canh gác, bảo vệ kho tiền. Việc canh gác, bảo vệ kho tiền chủ yếu do lực lượng bảo vệ; kể cả ngày nghỉ, Lễ, Tết. Bảo vệ kho được kết hợp chặt chẽ với bảo vệ trụ sở. TPKT giám sát tuân thủ nội quy vào/ra kho, nội quy quầy giao dịch tiền mặt; kiểm soát người được vào làm việc trong kho, quầy.</td><td>Lịch trực, nội quy kho/quầy</td><td>Nhắc đến giờ ngoài giờ mà chưa đủ 3 chìa</td></tr>
+      <tr><td>4–5</td><td>Ban QL kho</td><td>Nếu vào kho: đủ thành phần; quan sát ngoài khóa/cửa; nghi vấn ghi trước khi mở; xâm nhập thì giữ hiện trường, báo Công an. Mở khóa: GĐ → TPKT → Thủ kho. Thủ kho vào đầu tiên. Mọi người ký S 06/TTKQ.</td><td>S 06/TTKQ</td><td>—</td></tr>
+      <tr><td>6</td><td>Cán bộ được duyệt</td><td>Nếu chỉ làm tại quầy: tuân thủ nội quy quầy giao dịch tiền mặt; không tự ý vào kho.</td><td>Nội quy quầy</td><td>—</td></tr>
+      <tr><td>7</td><td>Ban QL kho, Thủ kho</td><td>Kết thúc: kiểm hiện vật mang ra, kiểm thiết bị an toàn; Thủ kho kiểm lần cuối; Thủ kho ra cuối; đóng khóa Thủ kho → TPKT → GĐ; ký S 06.</td><td>S 06/TTKQ</td><td>Nhắc ca đêm chưa xác nhận đóng kho</td></tr>
+      <tr><td>8</td><td>Bảo vệ, TĐV</td><td>Bàn giao ca bảo vệ. Phương án bảo vệ ghi rõ nội dung, trách nhiệm bảo vệ tiền mặt, tài sản trong thời gian nghỉ trưa. Bảo vệ thực hiện trách nhiệm theo Điều 39.</td><td>Sổ giao ca bảo vệ, phương án bảo vệ</td><td>—</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== LUỒNG 14 ========== -->
+<section class="luong" id="luong-14">
+  <h2>Luồng 14 — Báo cáo công tác an toàn kho quỹ năm (mẫu 19/TTKQ)</h2>
+  <p class="meta">Điều 62</p>
+  <div class="chips">
+    <span class="chip">Khi nào: hàng năm; kỳ số liệu từ 15/12 năm trước đến 14/12 năm báo cáo</span>
+  </div>
+  <div class="box">
+    <h3>Ai tham gia</h3>
+    <ul>
+      <li>Chi nhánh loại I, đơn vị đầu mối hoạt động ngân quỹ: lập, gửi TSC và NHNN chi nhánh</li>
+      <li>Trụ sở chính (Ban Tài chính Kế toán): tổng hợp toàn hệ thống gửi NHNN (Cục Phát hành và Kho quỹ)</li>
+      <li>TĐV ký, đóng dấu báo cáo</li>
+    </ul>
+  </div>
+  <div class="diagram">
+    <p class="caption">Sơ đồ Luồng 14</p>
+    <pre class="mermaid">
+flowchart TB
+  AB1["1. Mở việc lập báo cáo năm<br/>kỳ số liệu 15/12 năm trước → 14/12 năm báo cáo"] --> AB2["2. Thu thập: chỉ đạo an toàn kho quỹ;<br/>đáp ứng tiền mặt KH; quản lý kho quỹ;<br/>phòng chống tiền giả"]
+  AB2 --> AB3["3. Ghi tồn tại: kiểm tra, văn bản hướng dẫn;<br/>kiểm đếm bảo quản; quản lý và vào/ra kho;<br/>bảo vệ trụ sở, kho, nơi GD;<br/>kho và thiết bị; nguyên nhân"]
+  AB3 --> AB4["4. Phương hướng, nhiệm vụ năm sau"]
+  AB4 --> AB5["5. Kiến nghị NHNN, NHNN chi nhánh, Agribank"]
+  AB5 --> AB6["6. TĐV ký mẫu 19/TTKQ"]
+  AB6 --> AB7["7. CN loại I / đơn vị đầu mối ngân quỹ:<br/>scan gửi TSC qua Ban TCKT trước 25/12<br/>bản giấy gửi NHNN chi nhánh trước 01/01 năm sau"]
+  AB7 --> AB8["8. TSC tổng hợp toàn hệ thống<br/>gửi NHNN Cục Phát hành và Kho quỹ<br/>trước 15/01 năm sau — văn bản giấy<br/>trực tiếp hoặc bưu chính"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>TPKT, TĐV</td><td>Mở kỳ báo cáo. Thời gian chốt số liệu từ ngày 15/12 năm trước kỳ báo cáo đến ngày 14/12 của kỳ báo cáo.</td><td>—</td><td>Mở khoảng 15/11; nhắc 10/12</td></tr>
+      <tr><td>2</td><td>Đơn vị</td><td>Phần I kết quả: chỉ đạo, hướng dẫn công tác an toàn kho quỹ; đáp ứng nhu cầu tiền mặt cho khách hàng; quản lý kho quỹ; phòng chống tiền giả.</td><td>Mẫu 19/TTKQ phần I</td><td>—</td></tr>
+      <tr><td>3</td><td>Đơn vị</td><td>Tồn tại, hạn chế: công tác kiểm tra, ban hành văn bản hướng dẫn quy trình nghiệp vụ; kiểm đếm, bảo quản tiền mặt, tài sản quý, giấy tờ có giá; quản lý kho tiền và vào, ra kho tiền; bảo vệ trụ sở, kho tiền và nơi giao dịch; tồn tại về kho tiền và hệ thống thiết bị an toàn kho tiền; nguyên nhân tồn tại.</td><td>Mẫu 19 phần tồn tại</td><td>—</td></tr>
+      <tr><td>4</td><td>Đơn vị</td><td>Phần II: phương hướng, nhiệm vụ công tác tiền tệ, kho quỹ.</td><td>Mẫu 19 phần II</td><td>—</td></tr>
+      <tr><td>5</td><td>Đơn vị</td><td>Phần III: kiến nghị NHNN Việt Nam; NHNN chi nhánh; Agribank.</td><td>Mẫu 19 phần III</td><td>—</td></tr>
+      <tr><td>6</td><td>TĐV</td><td>Ký, ghi rõ họ tên, chức vụ, đóng dấu. Nơi nhận: nơi kính gửi; lưu đơn vị.</td><td>Mẫu 19/TTKQ đã ký</td><td>—</td></tr>
+      <tr><td>7</td><td>CN loại I, đơn vị đầu mối hoạt động ngân quỹ</td><td>Tổng hợp báo cáo gửi Trụ sở chính trước ngày 25/12 của năm báo cáo (scan theo đường dẫn nội bộ Agribank qua Ban Tài chính Kế toán). Gửi NHNN chi nhánh trước ngày 01/01 năm liền kề sau năm báo cáo (báo cáo lập thành văn bản giấy, gửi trực tiếp hoặc qua dịch vụ bưu chính).</td><td>File scan + bản giấy</td><td>Nhắc 20/12, 24/12 (TSC); 31/12 (NHNN CN)</td></tr>
+      <tr><td>8</td><td>Trụ sở chính</td><td>Gửi báo cáo tổng kết toàn hệ thống Agribank về NHNN (qua Cục Phát hành và Kho quỹ) trước ngày 15/01 năm liền kề sau năm báo cáo. Phương thức: văn bản giấy, gửi trực tiếp hoặc bưu chính.</td><td>Báo cáo tổng hợp hệ thống</td><td>Nhắc 05/01, 14/01</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== LUỒNG 15 ========== -->
+<section class="luong" id="luong-15">
+  <h2>Luồng 15 — Ban quản lý ATM và tiếp quỹ ATM</h2>
+  <p class="meta">Điều 22; Điều 25; Điều 52 khoản 6 về kiểm kê ATM</p>
+  <div class="chips">
+    <span class="chip">Khi nào: thành lập/thay Ban QL ATM; tiếp quỹ, kiểm quỹ, thanh lý, điều chuyển ATM; bàn giao chìa két ATM</span>
+  </div>
+  <div class="box">
+    <h3>Ai tham gia</h3>
+    <ul>
+      <li>Ban quản lý ATM do đơn vị thành lập bằng văn bản</li>
+      <li>Thành viên điển hình: lãnh đạo, cán bộ nghiệp vụ thẻ/kế toán thẻ, người giữ chìa két ATM</li>
+      <li>Đơn vị cung cấp/bảo trì ATM khi sửa chìa két</li>
+    </ul>
+  </div>
+  <div class="diagram">
+    <p class="caption">Sơ đồ Luồng 15</p>
+    <pre class="mermaid">
+flowchart TB
+  AC1["1. TĐV ban hành văn bản<br/>thành lập Ban quản lý ATM"] --> AC2["2. Giao nhiệm vụ từng thành viên"]
+  AC2 --> AC3{"3. Thành viên vắng?"}
+  AC3 -->|Có| AC4["4. Văn bản giao nhiệm vụ<br/>cho cán bộ khác thay<br/>trong suốt thời gian vắng"]
+  AC3 -->|Không| AC5["5. Lịch tiếp quỹ / kiểm quỹ ATM"]
+  AC4 --> AC5
+  AC5 --> AC6["6. Trước khi điều chuyển hoặc thanh lý ATM:<br/>kiểm quỹ, bảo đảm mọi giao dịch<br/>đã hạch toán"]
+  AC6 --> AC7["7. Tiếp quỹ, kiểm quỹ theo quy trình thẻ<br/>lập biên bản kiểm quỹ ATM"]
+  AC7 --> AC8["8. Chìa két ATM: bàn giao S 08<br/>nếu khóa mã thì đủ 3 người,<br/>xóa mã cũ, cài mã mới"]
+  AC8 --> AC9["9. Dùng xong chìa ATM phải mang về<br/>bảo quản tại trụ sở đơn vị"]
+  AC9 --> AC10["10. Kiểm kê tiền tại ATM<br/>do Ban QL ATM thực hiện<br/>theo quy định TGĐ từng thời kỳ"]
+  AC10 --> AC11["11. Tiếp quỹ qua đơn vị đầu mối ngân quỹ:<br/>theo quy định riêng TGĐ"]
+    </pre>
+  </div>
+  <table class="steps">
+    <thead><tr><th>Bước</th><th>Người làm</th><th>Việc làm</th><th>Chứng từ / sổ</th><th>Hạn / nhắc</th></tr></thead>
+    <tbody>
+      <tr><td>1–2</td><td>TĐV</td><td>Ban hành văn bản thành lập Ban quản lý ATM, giao nhiệm vụ từng thành viên (kể cán bộ kế toán thực hiện nhiệm vụ nghiệp vụ thẻ).</td><td>QĐ/văn bản Ban QL ATM</td><td>—</td></tr>
+      <tr><td>3–4</td><td>TĐV</td><td>Thành viên vắng: phải có văn bản giao nhiệm vụ cho cán bộ khác thay thế. Người được giao chịu trách nhiệm quản lý ATM trong suốt thời gian được giao. Văn bản giao nhiệm vụ được lưu.</td><td>Văn bản giao thay</td><td>Trước khi người chính vắng</td></tr>
+      <tr><td>5–7</td><td>Ban QL ATM</td><td>Thực hiện tiếp quỹ, kiểm quỹ theo quy trình nghiệp vụ Thẻ của Agribank, lập Biên bản kiểm quỹ ATM. Chi nhánh phải thực hiện kiểm quỹ ATM trước khi điều chuyển, thanh lý ATM và bảo đảm tất cả giao dịch phát sinh đã được hạch toán trước khi điều chuyển, thanh lý. Cabin, biển hiệu, biển vẫy ATM theo quy định nhận diện thương hiệu Agribank.</td><td>Biên bản kiểm quỹ ATM, chứng từ hạch toán</td><td>Nhắc lịch tiếp quỹ</td></tr>
+      <tr><td>8</td><td>Người giao và người nhận chìa két ATM</td><td>Khi thay đổi thành viên giữ chìa két ATM: ký S 08/TTKQ. Khóa mã: các thành viên giữ chìa/mã có mặt; người giao xóa mã, giao chìa định vị; người nhận cài mã mình; cấm dùng mã cũ.</td><td>S 08/TTKQ</td><td>—</td></tr>
+      <tr><td>9</td><td>Người giữ chìa ATM</td><td>Chìa khóa két ATM khi sử dụng xong phải mang về bảo quản tại trụ sở cơ quan đơn vị. Không mang chìa ra ngoài trụ sở khi không dùng. Không cho người khác xem, cầm, cất hộ.</td><td>—</td><td>Nhắc cuối ngày nếu chìa chưa nhập lại trụ sở</td></tr>
+      <tr><td>10</td><td>Ban QL ATM</td><td>Kiểm kê tiền mặt tại máy ATM do Ban quản lý ATM thực hiện theo quy định của Tổng Giám đốc từng thời kỳ.</td><td>Biên bản kiểm kê ATM</td><td>Theo lịch TGĐ</td></tr>
+      <tr><td>11</td><td>Đơn vị, Ban QL ATM</td><td>Trường hợp tiếp quỹ, kiểm quỹ ATM thông qua đơn vị đầu mối hoạt động ngân quỹ: thực hiện các nội dung liên quan đến Ban QL ATM và quản lý ATM theo quy định riêng của TGĐ từng thời kỳ.</td><td>Theo văn bản riêng</td><td>—</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<p class="note" style="text-align:center;margin-top:32px">Hết 15 luồng. Sơ đồ cần Internet để tải Mermaid từ cdn.jsdelivr.net. In: Ctrl+P.</p>
+</main>
+</div>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "base",
+    securityLevel: "loose",
+    themeVariables: {
+      primaryColor: "#e7f0fa",
+      primaryTextColor: "#0b2a4a",
+      primaryBorderColor: "#1a5fa8",
+      lineColor: "#1a5fa8",
+      secondaryColor: "#fff6e5",
+      tertiaryColor: "#f4f7fb",
+      fontFamily: "Segoe UI, Be Vietnam Pro, Tahoma, sans-serif",
+      fontSize: "13px"
+    },
+    flowchart: {
+      htmlLabels: true,
+      curve: "linear",
+      padding: 12,
+      nodeSpacing: 28,
+      rankSpacing: 32,
+      wrappingWidth: 220
+    }
+  });
+</script>
+</body>
+</html>
